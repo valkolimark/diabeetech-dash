@@ -32,7 +32,7 @@
     "test-single": "env-cmd -f ./tests/ci.test.env mocha --exit tests/$TEST.test.js",
     "test-ci": "env-cmd -f ./tests/ci.test.env mocha --exit tests/*.test.js",
     "build": "webpack --config webpack/webpack.config.js",
-    "postinstall": "npm run build"
+    "postinstall": "echo 'Skipping webpack build temporarily'"
   },
   "main": "lib/server/server.js",
   "config": {
