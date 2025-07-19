@@ -103,6 +103,7 @@
     "mock-require": "^3.0.3",
     "moment": "^2.29.4",
     "moment-timezone": "^0.5.43",
+    "moment-timezone-data-webpack-plugin": "^1.5.1",
     "mongo-url-parser": "^1.0.1",
     "mongodb": "^3.7.3",
     "mongomock": "^0.1.2",
