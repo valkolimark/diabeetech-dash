@@ -2,7 +2,7 @@
 'use strict';
 
 /**
- * Heroku post-deployment script for Nightscout Multi-Tenant
+ * Heroku post-deployment script for Diabeetech Multi-Tenant
  * Initializes the database and creates initial tenants
  */
 
@@ -146,7 +146,7 @@ async function createTenant(client, masterDb, tenantData) {
 }
 
 async function main() {
-  console.log('Nightscout Multi-Tenant Post-Deployment Script');
+  console.log('Diabeetech Multi-Tenant Post-Deployment Script');
   console.log('==============================================');
   
   if (!MASTER_DB_URI) {
@@ -185,7 +185,7 @@ async function main() {
     console.log('✅ Post-deployment setup completed!');
     console.log('========================================\n');
     
-    console.log('Your Nightscout Multi-Tenant instance is ready!');
+    console.log('Your Diabeetech Multi-Tenant instance is ready!');
     console.log(`Base URL: https://btech-d038118b5224.herokuapp.com`);
     console.log(`Domain: ${BASE_DOMAIN}\n`);
     
@@ -220,7 +220,7 @@ async function main() {
       });
       
       const emailContent = `
-        <h2>Your Nightscout Multi-Tenant Instance is Ready!</h2>
+        <h2>Your Diabeetech Multi-Tenant Instance is Ready!</h2>
         <p>Your deployment to Heroku has completed successfully.</p>
         
         <h3>Access Information:</h3>
@@ -254,7 +254,7 @@ async function main() {
         await transporter.sendMail({
           from: process.env.EMAIL_FROM,
           to: ADMIN_EMAIL,
-          subject: 'Nightscout Multi-Tenant Deployment Successful',
+          subject: 'Diabeetech Multi-Tenant Deployment Successful',
           html: emailContent
         });
         console.log('✅ Credential email sent successfully');

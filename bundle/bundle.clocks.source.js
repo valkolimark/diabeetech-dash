@@ -6,4 +6,4 @@ window.Nightscout = {
     units: require('../lib/units')(),
 };
 
-console.info('Nightscout clock bundle ready');
+console.info('Diabeetech clock bundle ready');

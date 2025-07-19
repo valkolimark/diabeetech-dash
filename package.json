@@ -31,7 +31,7 @@
     "test": "env-cmd -f ./tests/ci.test.env mocha --exit tests/*.test.js",
     "test-single": "env-cmd -f ./tests/ci.test.env mocha --exit tests/$TEST.test.js",
     "test-ci": "env-cmd -f ./tests/ci.test.env mocha --exit tests/*.test.js",
-    "postinstall": "echo 'Skipping webpack build temporarily'"
+    "postinstall": "webpack --config webpack/webpack.config.js"
   },
   "main": "lib/server/server.js",
   "config": {
@@ -82,6 +82,7 @@
     "env-cmd": "^10.1.0",
     "errorhandler": "^1.5.1",
     "event-stream": "^4.0.1",
+    "expose-loader": "^5.0.1",
     "express": "^4.18.2",
     "express-minify": "^1.0.0",
     "fast-password-entropy": "^1.1.1",

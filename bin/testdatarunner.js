@@ -9,7 +9,7 @@ const shasum = crypto.createHash('sha1');
 const FIVE_MINUTES = 1000 * 60 * 5;
 
 if (process.argv.length < 4) {
-    console.error('This is an utility to send continuous CGM entry data to a test Nightscout server')
+    console.error('This is an utility to send continuous CGM entry data to a test Diabeetech server')
     console.error('USAGE: node testdatarunner.js <SERVER BASE URL> <API_SECRET>');
     process.exit();
 }

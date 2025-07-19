@@ -2,8 +2,8 @@
 'use strict';
 
 /**
- * Nightscout Data Migration Script
- * Migrates data from a single-tenant Nightscout instance to multi-tenant
+ * Diabeetech Data Migration Script
+ * Migrates data from a single-tenant Diabeetech instance to multi-tenant
  * 
  * Usage: node migrate-nightscout-data.js <source-mongo-uri> <tenant-subdomain> [options]
  * 

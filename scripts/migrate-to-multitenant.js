@@ -2,7 +2,7 @@
 'use strict';
 
 /**
- * Migration script to convert single-tenant Nightscout to multi-tenant
+ * Migration script to convert single-tenant Diabeetech to multi-tenant
  * 
  * Usage: node scripts/migrate-to-multitenant.js
  * 
@@ -31,7 +31,7 @@ function prompt(question) {
 }
 
 async function migrate() {
-  console.log('Nightscout Multi-Tenant Migration Tool');
+  console.log('Diabeetech Multi-Tenant Migration Tool');
   console.log('=====================================\n');
   
   try {
@@ -200,7 +200,7 @@ async function migrate() {
     console.log(`Admin Password: [as entered]`);
     console.log('\n=== Next Steps ===');
     console.log('1. Update your environment variables as shown above');
-    console.log('2. Restart your Nightscout server');
+    console.log('2. Restart your Diabeetech server');
     console.log('3. Access your tenant at the URL shown above');
     console.log('4. Login with the admin credentials');
     

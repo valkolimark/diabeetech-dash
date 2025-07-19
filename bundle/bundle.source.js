@@ -40,7 +40,7 @@ window.Nightscout.reportclient = require('../lib/report/reportclient');
 window.Nightscout.profileclient = require('../lib/profile/profileeditor');
 window.Nightscout.foodclient = require('../lib/food/food');
 
-console.info('Nightscout bundle ready');
+console.info('Diabeetech bundle ready');
 
 // Needed for Hot Module Replacement
 if(typeof(module.hot) !== 'undefined') {
