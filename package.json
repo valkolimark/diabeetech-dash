@@ -127,6 +127,7 @@
     "timers-browserify": "^2.0.12",
     "traverse": "^0.6.7",
     "uuid": "^9.0.0",
+    "validator": "^13.9.0",
     "webpack": "^5.88.0",
     "webpack-cli": "^5.1.4",
     "webpack-dev-middleware": "^6.1.1",
