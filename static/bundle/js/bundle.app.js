@@ -11,20 +11,53 @@ window.Nightscout.client = {
   init: function() {
     console.log('Nightscout client initializing...');
     
-    // Hide loading screen
-    $('#centerMessagePanel').fadeOut(500);
-    
-    // Show main content
-    $('.container').show();
-    $('#chartContainer').show();
-    
-    // Remove loading class from body
-    $('body').removeClass('loading');
-    
-    console.log('Nightscout client initialization complete');
-    
-    // Trigger app ready event
-    $(window).trigger('nightscout-ready');
+    try {
+      // Hide loading screen
+      const loadingPanel = document.getElementById('centerMessagePanel');
+      if (loadingPanel) {
+        loadingPanel.style.transition = 'opacity 500ms';
+        loadingPanel.style.opacity = '0';
+        setTimeout(() => {
+          loadingPanel.style.display = 'none';
+        }, 500);
+      }
+      
+      // Show main content
+      const containers = document.querySelectorAll('.container, #chartContainer');
+      containers.forEach(container => {
+        container.style.display = 'block';
+      });
+      
+      // Remove loading class from body
+      document.body.classList.remove('loading');
+      
+      // If jQuery is available, use it too
+      if (typeof $ !== 'undefined') {
+        $('#centerMessagePanel').fadeOut(500);
+        $('.container').show();
+        $('#chartContainer').show();
+        $('body').removeClass('loading');
+        $(window).trigger('nightscout-ready');
+      }
+      
+      console.log('Nightscout client initialization complete');
+      
+      // Ensure we hide loading screen even if other parts fail
+      setTimeout(() => {
+        const panel = document.getElementById('centerMessagePanel');
+        if (panel && panel.style.display !== 'none') {
+          panel.style.display = 'none';
+        }
+      }, 1000);
+      
+    } catch (error) {
+      console.error('Error during Nightscout initialization:', error);
+      // Force hide loading screen on error
+      const loadingPanel = document.getElementById('centerMessagePanel');
+      if (loadingPanel) {
+        loadingPanel.style.display = 'none';
+      }
+    }
   }
 };
 
@@ -41,6 +74,23 @@ $(document).ready(function() {
     console.error('Nightscout Error:', msg, 'at', url, ':', line);
     return false;
   };
+  
+  // Fallback: If init hasn't been called after 2 seconds, force it
+  setTimeout(function() {
+    const loadingPanel = document.getElementById('centerMessagePanel');
+    if (loadingPanel && loadingPanel.style.display !== 'none') {
+      console.warn('Loading screen still visible after 2s, forcing init...');
+      if (window.Nightscout && window.Nightscout.client && window.Nightscout.client.init) {
+        window.Nightscout.client.init();
+      } else {
+        // Direct DOM manipulation as last resort
+        loadingPanel.style.display = 'none';
+        document.querySelectorAll('.container, #chartContainer').forEach(el => {
+          el.style.display = 'block';
+        });
+      }
+    }
+  }, 2000);
 });
 
 // Placeholder for missing modules
