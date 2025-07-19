@@ -74,10 +74,12 @@ async function createTenant(client, masterDb, tenantData) {
   
   // Create tenant
   const tenantId = uuidv4();
+  const databaseName = `nightscout-tenant-${tenantData.subdomain}`;
   const tenant = {
     tenantId: tenantId,
     name: tenantData.name,
     subdomain: tenantData.subdomain,
+    databaseName: databaseName,
     settings: {
       units: 'mg/dl',
       timeFormat: 12,
