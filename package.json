@@ -1,15 +1,152 @@
 {
   "name": "nightscout",
-  "private": true,
-  "version": "0.0.0",
-  "type": "module",
+  "version": "15.0.2",
+  "description": "Nightscout acts as a web-based CGM (Continuous Glucose Monnitor) to allow multiple caregivers to remotely view a patients glucose data in realtime.",
+  "license": "AGPL-3.0",
+  "author": "Nightscout Team",
+  "homepage": "http://nightscout.github.io/",
+  "keywords": [
+    "diabetes",
+    "continuous glucose management",
+    "cgm",
+    "dexcom",
+    "glucose",
+    "monitoring"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nightscout/cgm-remote-monitor.git"
+  },
+  "contributors": [
+    {
+      "name": "Nightscout Team",
+      "url": "https://github.com/nightscout/cgm-remote-monitor/graphs/contributors"
+    }
+  ],
+  "bugs": {
+    "url": "https://github.com/nightscout/cgm-remote-monitor/issues"
+  },
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview"
+    "start": "node lib/server/server.js",
+    "test": "env-cmd -f ./tests/ci.test.env mocha --exit tests/*.test.js",
+    "test-single": "env-cmd -f ./tests/ci.test.env mocha --exit tests/$TEST.test.js",
+    "test-ci": "env-cmd -f ./tests/ci.test.env mocha --exit tests/*.test.js",
+    "postinstall": "webpack --mode production --config webpack/webpack.config.js"
+  },
+  "main": "lib/server/server.js",
+  "config": {
+    "blanket": {
+      "pattern": [
+        "lib",
+        "server",
+        "app",
+        "static/js"
+      ],
+      "data-cover-never": [
+        "node_modules"
+      ]
+    }
+  },
+  "engines": {
+    "node": "^14.0.0 || ^16.0.0 || ^18.0.0 || ^20.0.0",
+    "npm": "^6.0.0 || ^8.0.0 || ^9.0.0 || ^10.0.0"
+  },
+  "dependencies": {
+    "@babel/core": "^7.22.5",
+    "@babel/preset-env": "^7.22.5",
+    "@playwright/test": "^1.42.1",
+    "ajv": "^8.12.0",
+    "ajv-keywords": "^5.1.0",
+    "async": "^3.2.4",
+    "axios": "^1.4.0",
+    "babel-loader": "^9.1.2",
+    "bcryptjs": "^2.4.3",
+    "body-parser": "^1.20.2",
+    "bootevent": "0.0.1",
+    "braces": "^3.0.2",
+    "buffer": "^6.0.3",
+    "cache-manager": "^5.2.3",
+    "cache-manager-fs-hash": "^1.0.0",
+    "chalk": "^4.1.2",
+    "compression": "^1.7.4",
+    "crypto-browserify": "^3.12.0",
+    "css-loader": "^6.8.1",
+    "css-minimizer-webpack-plugin": "^5.0.1",
+    "cssmin": "^0.4.3",
+    "csv-stringify": "^6.4.0",
+    "d3": "^7.8.5",
+    "dompurify": "^3.0.4",
+    "ejs": "^3.1.9",
+    "env-cmd": "^10.1.0",
+    "errorhandler": "^1.5.1",
+    "event-stream": "^4.0.1",
+    "express": "^4.18.2",
+    "express-minify": "^1.0.0",
+    "fast-password-entropy": "^1.1.1",
+    "file-loader": "^6.2.0",
+    "flot": "^0.8.3",
+    "forwarded-for": "^1.1.0",
+    "googleapis": "^118.0.0",
+    "helmet": "^7.0.0",
+    "jquery": "^3.7.0",
+    "jquery-ui-bundle": "^1.12.1-migrate",
+    "jquery.tooltips": "^1.0.0",
+    "js-storage": "^1.1.0",
+    "jsdom": "^22.1.0",
+    "json-loader": "^0.5.7",
+    "jsonwebtoken": "^9.0.0",
+    "lodash": "^4.17.21",
+    "memory-cache": "^0.2.0",
+    "mime-types": "^2.1.35",
+    "mini-css-extract-plugin": "^2.7.6",
+    "minimed-connect-to-nightscout": "^1.5.5",
+    "mock-require": "^3.0.3",
+    "moment": "^2.29.4",
+    "moment-timezone": "^0.5.43",
+    "mongo-url-parser": "^1.0.1",
+    "mongodb": "^3.7.3",
+    "mongomock": "^0.1.2",
+    "node-cache": "^5.1.2",
+    "nodemailer": "^6.9.3",
+    "parse-duration": "^1.1.0",
+    "process": "^0.11.10",
+    "pushover-notifications": "^1.2.2",
+    "random-token": "0.0.8",
+    "request": "^2.88.2",
+    "semver": "^7.5.3",
+    "share2nightscout-bridge": "^0.2.13",
+    "shiro-trie": "^0.4.9",
+    "simple-statistics": "^7.8.3",
+    "socket.io": "^4.6.2",
+    "socket.io-client": "^4.6.2",
+    "stream-browserify": "^3.0.0",
+    "style-loader": "^3.3.3",
+    "swagger-ui-dist": "^5.0.0",
+    "swagger-ui-express": "^4.6.3",
+    "terser-webpack-plugin": "^5.3.9",
+    "timers-browserify": "^2.0.12",
+    "traverse": "^0.6.7",
+    "uuid": "^9.0.0",
+    "webpack": "^5.88.0",
+    "webpack-cli": "^5.1.4",
+    "webpack-dev-middleware": "^6.1.1",
+    "webpack-hot-middleware": "^2.25.3"
   },
   "devDependencies": {
-    "prettier": "^3.3.1",
-    "vite": "^5.1.6"
-  }
+    "babel-eslint": "^10.1.0",
+    "benv": "^3.3.0",
+    "chai": "^4.3.7",
+    "eslint": "^8.43.0",
+    "eslint-loader": "^4.0.2",
+    "istanbul": "^0.4.5",
+    "mocha": "^10.2.0",
+    "nyc": "^15.1.0",
+    "prettier": "^2.8.8",
+    "should": "^13.2.3",
+    "supertest": "^6.3.3",
+    "webpack-bundle-analyzer": "^4.9.0",
+    "webpack-dev-server": "^4.15.1",
+    "xml2js": "^0.6.0"
+  },
+  "browserslist": "> 0.25%, not dead"
 }
