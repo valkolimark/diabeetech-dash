@@ -17,7 +17,12 @@ async function createTestData() {
     process.exit(1);
   }
   
-  const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/nightscout-multitenant';
+  const mongoUri = process.env.MONGODB_URI;
+  
+  if (!mongoUri) {
+    console.error('MONGODB_URI environment variable is required');
+    process.exit(1);
+  }
   const client = new MongoClient(mongoUri);
   
   try {

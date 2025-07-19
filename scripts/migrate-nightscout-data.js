@@ -49,7 +49,12 @@ async function migrate() {
   console.log('Migration options:', options);
   
   // Target database configuration from environment
-  const targetUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/nightscout-multitenant';
+  const targetUri = process.env.MONGODB_URI;
+  
+  if (!targetUri) {
+    console.error('MONGODB_URI environment variable is required');
+    process.exit(1);
+  }
   
   // Connect to both databases
   const sourceClient = new MongoClient(sourceUri);
