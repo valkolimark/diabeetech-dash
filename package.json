@@ -31,7 +31,7 @@
     "test": "env-cmd -f ./tests/ci.test.env mocha --exit tests/*.test.js",
     "test-single": "env-cmd -f ./tests/ci.test.env mocha --exit tests/$TEST.test.js",
     "test-ci": "env-cmd -f ./tests/ci.test.env mocha --exit tests/*.test.js",
-    "postinstall": "webpack --mode production --config webpack/webpack.config.js"
+    "postinstall": "echo 'Skipping webpack build for now'"
   },
   "main": "lib/server/server.js",
   "config": {
