@@ -12,7 +12,7 @@ const mongodb = require('mongodb');
 const MongoClient = mongodb.MongoClient;
 
 // Configuration
-const MASTER_DB_URI = process.env.MASTER_MONGODB_URI || 'mongodb://localhost:27017/nightscout_master';
+const MASTER_DB_URI = process.env.MASTER_MONGODB_URI || 'mongodb://localhost:27017/nightscout-master';
 const BASE_DOMAIN = process.env.BASE_DOMAIN || 'nightscout.local';
 
 // Test data configuration
@@ -214,7 +214,7 @@ async function main() {
       }
       
       // Create tenant database and populate with sample data
-      const tenantDbName = `nightscout_tenant_${testTenant.subdomain}`;
+      const tenantDbName = `nightscout-tenant-${testTenant.subdomain}`;
       console.log(`  Creating tenant database: ${tenantDbName}`);
       
       const tenantDb = client.db(tenantDbName);

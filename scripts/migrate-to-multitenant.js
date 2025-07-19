@@ -76,7 +76,7 @@ async function migrate() {
     const originalDb = client.db(originalDbName);
     
     // Create master database
-    const masterDbName = 'nightscout_master';
+    const masterDbName = 'nightscout-master';
     const masterDb = client.db(masterDbName);
     
     console.log(`\nCreating master database: ${masterDbName}`);
@@ -87,7 +87,7 @@ async function migrate() {
       tenantId: crypto.randomUUID(),
       tenantName: tenantName,
       subdomain: subdomain.toLowerCase(),
-      databaseName: `nightscout_tenant_${subdomain.toLowerCase()}`,
+      databaseName: `nightscout-tenant-${subdomain.toLowerCase()}`,
       createdAt: new Date(),
       updatedAt: new Date(),
       isActive: true,
@@ -190,7 +190,7 @@ async function migrate() {
     console.log('\nAdd these environment variables to enable multi-tenant mode:\n');
     console.log(`MULTI_TENANT_ENABLED=true`);
     console.log(`MASTER_MONGODB_URI=${mongoUri.replace(originalDbName, masterDbName)}`);
-    console.log(`TENANT_DB_PREFIX=nightscout_tenant_`);
+    console.log(`TENANT_DB_PREFIX=nightscout-tenant-`);
     console.log(`JWT_SECRET=${crypto.randomBytes(32).toString('hex')}`);
     console.log(`BASE_DOMAIN=your-domain.com`);
     console.log(`DEFAULT_TENANT=${subdomain}`);

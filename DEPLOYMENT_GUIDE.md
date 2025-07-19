@@ -17,7 +17,7 @@ This guide will help you deploy the multi-tenant Nightscout to Heroku with Mongo
    - Click on your `nightscout-multitenant` cluster
    - Click "Connect" → "Connect your application"
    - Copy the connection string
-   - It should look like: `mongodb+srv://username:password@nightscout-multitenant.xxxxx.mongodb.net/nightscout_master?retryWrites=true&w=majority`
+   - It should look like: `mongodb+srv://username:password@nightscout-multitenant.xxxxx.mongodb.net/nightscout-master?retryWrites=true&w=majority`
 
 2. **Configure network access:**
    - Go to Network Access in MongoDB Atlas
@@ -154,7 +154,7 @@ heroku logs --tail
 ## Troubleshooting
 
 ### MongoDB Connection Issues
-- Verify your connection string includes `/nightscout_master` as the database name
+- Verify your connection string includes `/nightscout-master` as the database name
 - Check that your MongoDB user has proper permissions
 - Ensure IP whitelist includes 0.0.0.0/0
 

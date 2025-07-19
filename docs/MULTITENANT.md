@@ -18,7 +18,7 @@ This fork of Nightscout adds multi-tenant capabilities, allowing a single Nights
 ### Database Structure
 
 ```
-Master Database (nightscout_master):
+Master Database (nightscout-master):
 ├── tenants (collection)
 │   ├── tenantId
 │   ├── subdomain
@@ -30,7 +30,7 @@ Master Database (nightscout_master):
     ├── email
     └── role
 
-Tenant Databases (nightscout_tenant_<subdomain>):
+Tenant Databases (nightscout-tenant-<subdomain>):
 ├── entries
 ├── treatments
 ├── devicestatus
@@ -88,7 +88,7 @@ Tenant Databases (nightscout_tenant_<subdomain>):
 MULTI_TENANT_ENABLED=true
 
 # Master database URI
-MASTER_MONGODB_URI=mongodb://localhost:27017/nightscout_master
+MASTER_MONGODB_URI=mongodb://localhost:27017/nightscout-master
 
 # JWT secret for authentication
 JWT_SECRET=your-secret-key-min-32-chars

@@ -33,7 +33,7 @@ export JWT_SECRET=$(node -e "console.log(require('crypto').randomBytes(32).toStr
 # Set environment variables (replace with your values)
 heroku config:set \
   MULTI_TENANT_ENABLED=true \
-  MASTER_MONGODB_URI="mongodb+srv://user:pass@nightscout-multitenant.xxxxx.mongodb.net/nightscout_master?retryWrites=true&w=majority" \
+  MASTER_MONGODB_URI="mongodb+srv://user:pass@nightscout-multitenant.xxxxx.mongodb.net/nightscout-master?retryWrites=true&w=majority" \
   JWT_SECRET="$JWT_SECRET" \
   BASE_DOMAIN=diabeetech.com \
   EMAIL_HOST=smtp.gmail.com \

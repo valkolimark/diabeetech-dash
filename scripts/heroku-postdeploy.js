@@ -119,7 +119,7 @@ async function createTenant(client, masterDb, tenantData) {
   console.log(`  Created admin user: ${tenantData.adminEmail}`);
   
   // Create tenant database
-  const tenantDbName = `nightscout_tenant_${tenantData.subdomain}`;
+  const tenantDbName = `nightscout-tenant-${tenantData.subdomain}`;
   console.log(`  Creating tenant database: ${tenantDbName}`);
   
   const tenantDb = client.db(tenantDbName);
