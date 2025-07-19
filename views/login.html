@@ -263,6 +263,9 @@
           localStorage.setItem('authToken', data.accessToken);
           localStorage.setItem('refreshToken', data.refreshToken);
           
+          // Also set a secure cookie for server-side auth
+          document.cookie = `nightscout_token=${data.accessToken}; path=/; secure; samesite=strict`;
+          
           // Show success message
           successMessage.textContent = 'Login successful! Redirecting...';
           successMessage.style.display = 'block';
