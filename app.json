@@ -1,0 +1,163 @@
+{
+  "name": "Nightscout Multi-Tenant",
+  "description": "Multi-tenant CGM Remote Monitor for managing multiple clinics/organizations",
+  "repository": "https://github.com/nightscout/cgm-remote-monitor",
+  "logo": "https://raw.githubusercontent.com/nightscout/cgm-remote-monitor/master/static/images/large.png",
+  "keywords": ["diabetes", "cgm", "continuous glucose monitor", "nightscout", "multi-tenant"],
+  "website": "https://diabeetech.com",
+  "success_url": "/",
+  "env": {
+    "MULTI_TENANT_ENABLED": {
+      "description": "Enable multi-tenant mode",
+      "value": "true",
+      "required": true
+    },
+    "MASTER_MONGODB_URI": {
+      "description": "MongoDB URI for master database (your nightscout-multitenant cluster connection string)",
+      "value": "",
+      "required": true
+    },
+    "JWT_SECRET": {
+      "description": "Secret key for JWT tokens (32+ characters) - Auto-generated",
+      "generator": "secret",
+      "required": true
+    },
+    "BASE_DOMAIN": {
+      "description": "Base domain for multi-tenant subdomains",
+      "value": "diabeetech.com",
+      "required": true
+    },
+    "NODE_ENV": {
+      "description": "Node environment",
+      "value": "production",
+      "required": true
+    },
+    "HOSTNAME": {
+      "description": "Hostname for the server",
+      "value": "0.0.0.0",
+      "required": false
+    },
+    "PORT": {
+      "description": "Port for the server (Heroku will override this)",
+      "value": "1337",
+      "required": false
+    },
+    "INSECURE_USE_HTTP": {
+      "description": "Allow insecure HTTP (set to false for production)",
+      "value": "false",
+      "required": false
+    },
+    "SECURE_HSTS_HEADER": {
+      "description": "Enable HSTS security header",
+      "value": "true",
+      "required": false
+    },
+    "EMAIL_HOST": {
+      "description": "SMTP host for sending emails",
+      "value": "smtp.gmail.com",
+      "required": true
+    },
+    "EMAIL_PORT": {
+      "description": "SMTP port",
+      "value": "587",
+      "required": true
+    },
+    "EMAIL_SECURE": {
+      "description": "Use TLS for email (false for Gmail with STARTTLS)",
+      "value": "false",
+      "required": true
+    },
+    "EMAIL_USER": {
+      "description": "Your Gmail address for sending emails",
+      "value": "",
+      "required": true
+    },
+    "EMAIL_PASS": {
+      "description": "Gmail App Password (NOT your regular password - see instructions)",
+      "value": "",
+      "required": true
+    },
+    "EMAIL_FROM": {
+      "description": "From address for emails",
+      "value": "noreply@diabeetech.com",
+      "required": true
+    },
+    "DISPLAY_UNITS": {
+      "description": "Default BG units for the site: 'mg/dl' or 'mmol/L'",
+      "value": "mg/dl",
+      "required": true
+    },
+    "TIME_FORMAT": {
+      "description": "Default time format (12 or 24)",
+      "value": "12",
+      "required": false
+    },
+    "THEME": {
+      "description": "Default theme (default, colors, colorblindfriendly)",
+      "value": "colors",
+      "required": false
+    },
+    "SHOW_PLUGINS": {
+      "description": "Default plugins to show",
+      "value": "careportal basal dbsize",
+      "required": false
+    },
+    "ENABLE": {
+      "description": "Default features to enable",
+      "value": "careportal iob cob bwp cage sage iage treatmentnotify basal dbsize",
+      "required": false
+    },
+    "ALARM_TYPES": {
+      "description": "Default alarm types ('simple' and/or 'predict')",
+      "value": "simple",
+      "required": false
+    },
+    "BG_HIGH": {
+      "description": "Default Urgent High BG threshold (mg/dL or mmol/L)",
+      "value": "260",
+      "required": false
+    },
+    "BG_LOW": {
+      "description": "Default Urgent Low BG threshold (mg/dL or mmol/L)",
+      "value": "55",
+      "required": false
+    },
+    "BG_TARGET_BOTTOM": {
+      "description": "Default Low BG threshold (mg/dL or mmol/L)",
+      "value": "80",
+      "required": false
+    },
+    "BG_TARGET_TOP": {
+      "description": "Default High BG threshold (mg/dL or mmol/L)",
+      "value": "180",
+      "required": false
+    },
+    "USE_NPM_INSTALL": {
+      "description": "Required for Heroku deployment",
+      "value": "true",
+      "required": true
+    }
+  },
+  "formation": {
+    "web": {
+      "quantity": 1,
+      "size": "standard-1x"
+    }
+  },
+  "buildpacks": [
+    {
+      "url": "heroku/nodejs"
+    }
+  ],
+  "addons": [
+    {
+      "plan": "papertrail:choklad",
+      "options": {
+        "name": "nightscout-multitenant-logs"
+      }
+    }
+  ],
+  "scripts": {
+    "postdeploy": "node scripts/heroku-postdeploy.js"
+  }
+}

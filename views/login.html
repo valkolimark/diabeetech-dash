@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  
+  <title>Nightscout Login</title>
+  
+  <link rel="stylesheet" type="text/css" href="/css/main.css?v=<%= locals.cachebuster %>">
+  <link rel="stylesheet" type="text/css" href="/css/drawer.css?v=<%= locals.cachebuster %>">
+  
+  <style>
+    body {
+      background: #000;
+      color: #808080;
+      font-family: 'Open Sans', Helvetica, Arial, sans-serif;
+    }
+    
+    .login-container {
+      max-width: 400px;
+      margin: 100px auto;
+      padding: 30px;
+      background: #1a1a1a;
+      border-radius: 10px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.5);
+    }
+    
+    .login-header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    
+    .login-header h1 {
+      color: #fff;
+      font-size: 28px;
+      margin: 0 0 10px 0;
+    }
+    
+    .login-header p {
+      color: #808080;
+      margin: 0;
+    }
+    
+    .tenant-info {
+      text-align: center;
+      margin-bottom: 20px;
+      padding: 10px;
+      background: #2a2a2a;
+      border-radius: 5px;
+    }
+    
+    .tenant-info .tenant-name {
+      color: #4CAF50;
+      font-weight: bold;
+    }
+    
+    .form-group {
+      margin-bottom: 20px;
+    }
+    
+    .form-group label {
+      display: block;
+      margin-bottom: 5px;
+      color: #ccc;
+      font-weight: 600;
+    }
+    
+    .form-group input {
+      width: 100%;
+      padding: 12px;
+      background: #2a2a2a;
+      border: 1px solid #404040;
+      border-radius: 5px;
+      color: #fff;
+      font-size: 16px;
+      box-sizing: border-box;
+    }
+    
+    .form-group input:focus {
+      outline: none;
+      border-color: #4CAF50;
+    }
+    
+    .form-actions {
+      margin-top: 30px;
+    }
+    
+    .btn {
+      width: 100%;
+      padding: 12px;
+      background: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    
+    .btn:hover {
+      background: #45a049;
+    }
+    
+    .btn:disabled {
+      background: #666;
+      cursor: not-allowed;
+    }
+    
+    .error-message {
+      color: #f44336;
+      text-align: center;
+      margin-top: 10px;
+      padding: 10px;
+      background: rgba(244, 67, 54, 0.1);
+      border-radius: 5px;
+      display: none;
+    }
+    
+    .success-message {
+      color: #4CAF50;
+      text-align: center;
+      margin-top: 10px;
+      padding: 10px;
+      background: rgba(76, 175, 80, 0.1);
+      border-radius: 5px;
+      display: none;
+    }
+    
+    .forgot-password {
+      text-align: center;
+      margin-top: 20px;
+    }
+    
+    .forgot-password a {
+      color: #4CAF50;
+      text-decoration: none;
+    }
+    
+    .forgot-password a:hover {
+      text-decoration: underline;
+    }
+    
+    .loading {
+      display: none;
+      text-align: center;
+      margin-top: 10px;
+    }
+    
+    .spinner {
+      border: 2px solid #f3f3f3;
+      border-top: 2px solid #4CAF50;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      animation: spin 1s linear infinite;
+      display: inline-block;
+      margin-left: 10px;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <div class="login-container">
+    <div class="login-header">
+      <h1>Nightscout</h1>
+      <p>Continuous Glucose Monitor Remote Monitoring</p>
+    </div>
+    
+    <div class="tenant-info" id="tenantInfo" style="display: none;">
+      Logging in to: <span class="tenant-name" id="tenantName"></span>
+    </div>
+    
+    <form id="loginForm">
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" required autocomplete="username">
+      </div>
+      
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" required autocomplete="current-password">
+      </div>
+      
+      <div class="form-actions">
+        <button type="submit" class="btn" id="loginBtn">Login</button>
+      </div>
+    </form>
+    
+    <div class="loading" id="loading">
+      <span>Logging in...</span>
+      <div class="spinner"></div>
+    </div>
+    
+    <div class="error-message" id="errorMessage"></div>
+    <div class="success-message" id="successMessage"></div>
+    
+    <div class="forgot-password">
+      <a href="/forgot-password">Forgot your password?</a>
+    </div>
+  </div>
+  
+  <script>
+    // Extract tenant info from subdomain
+    function getTenantInfo() {
+      const hostname = window.location.hostname;
+      const parts = hostname.split('.');
+      
+      if (parts.length > 2 || (parts.length === 2 && parts[0] !== 'www')) {
+        return {
+          subdomain: parts[0],
+          displayName: parts[0].charAt(0).toUpperCase() + parts[0].slice(1)
+        };
+      }
+      
+      return null;
+    }
+    
+    // Display tenant info
+    const tenantInfo = getTenantInfo();
+    if (tenantInfo) {
+      document.getElementById('tenantInfo').style.display = 'block';
+      document.getElementById('tenantName').textContent = tenantInfo.displayName;
+    }
+    
+    // Handle login form submission
+    document.getElementById('loginForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      const loginBtn = document.getElementById('loginBtn');
+      const loading = document.getElementById('loading');
+      const errorMessage = document.getElementById('errorMessage');
+      const successMessage = document.getElementById('successMessage');
+      
+      // Hide messages
+      errorMessage.style.display = 'none';
+      successMessage.style.display = 'none';
+      
+      // Show loading
+      loginBtn.disabled = true;
+      loading.style.display = 'block';
+      
+      try {
+        const response = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ email, password })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+          // Store tokens
+          localStorage.setItem('authToken', data.accessToken);
+          localStorage.setItem('refreshToken', data.refreshToken);
+          
+          // Show success message
+          successMessage.textContent = 'Login successful! Redirecting...';
+          successMessage.style.display = 'block';
+          
+          // Redirect to main app
+          setTimeout(() => {
+            window.location.href = '/';
+          }, 1000);
+        } else {
+          // Show error
+          errorMessage.textContent = data.message || 'Login failed';
+          errorMessage.style.display = 'block';
+          loginBtn.disabled = false;
+        }
+      } catch (err) {
+        console.error('Login error:', err);
+        errorMessage.textContent = 'Network error. Please try again.';
+        errorMessage.style.display = 'block';
+        loginBtn.disabled = false;
+      } finally {
+        loading.style.display = 'none';
+      }
+    });
+    
+    // Check if already logged in
+    async function checkAuth() {
+      const token = localStorage.getItem('authToken');
+      if (token) {
+        try {
+          const response = await fetch('/api/auth/verify', {
+            headers: {
+              'Authorization': 'Bearer ' + token
+            }
+          });
+          
+          if (response.ok) {
+            window.location.href = '/';
+          }
+        } catch (err) {
+          console.error('Auth check error:', err);
+        }
+      }
+    }
+    
+    checkAuth();
+  </script>
+</body>
+</html>
