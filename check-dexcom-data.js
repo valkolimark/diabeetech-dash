@@ -89,6 +89,12 @@ async function checkDexcomData() {
       console.log('Most recent Dexcom entry:', new Date(bridgeEntries[0].dateString).toLocaleString());
     }
     
+    // Check profile data
+    const profileCollection = tenantDb.collection('profile');
+    const profileData = await profileCollection.find({}).toArray();
+    console.log('\nProfile data:');
+    console.log(JSON.stringify(profileData, null, 2));
+    
   } catch (err) {
     console.error('Error:', err);
     process.exit(1);

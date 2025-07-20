@@ -70,4 +70,7 @@
       }
     });
   }
+  
+  // Signal that auth check is loaded
+  window.authCheckLoaded = true;
 })();
