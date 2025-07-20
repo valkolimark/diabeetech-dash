@@ -188,7 +188,7 @@
         <div class="form-group">
           <label for="username">Username</label>
           <input type="text" id="username" name="username" required 
-                 pattern="[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?"
+                 minlength="3" maxlength="63"
                  placeholder="Choose your username">
           <div class="username-preview" id="usernamePreview">
             Your Nightscout URL will be: <strong>https://[username].diabeetech.net</strong>
@@ -286,7 +286,6 @@
       </button>
       
       <div class="loading" id="loading">
-        <img src="/images/loading.gif" alt="Loading...">
         <p>Creating your account...</p>
       </div>
     </form>
@@ -340,6 +339,14 @@
         
         $('#errorMessage').hide();
         $('#successMessage').hide();
+        
+        // Validate username
+        const username = $('#username').val();
+        if (!/^[a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9]$/.test(username) || username.length < 3 || username.length > 63) {
+          $('#errorMessage').text('Username must be 3-63 characters, start and end with letter/number, and contain only letters, numbers, and hyphens').show();
+          return;
+        }
+        
         $('#submitButton').prop('disabled', true);
         $('#loading').show();
         
