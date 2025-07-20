@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Profile Creator - Diabeetech</title>
+    <meta charset="utf-8">
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .section { margin: 20px 0; padding: 20px; border: 1px solid #ccc; }
+        .success { color: green; }
+        .error { color: red; }
+        button { padding: 10px 20px; margin: 5px; }
+    </style>
+</head>
+<body>
+    <h1>Nightscout Profile Creator</h1>
+    
+    <div class="section">
+        <h2>Step 1: Save API Secret</h2>
+        <p>Your API Secret Hash: <code>51a26cb40dcca4fd97601d00f8253129091c06ca</code></p>
+        <button onclick="saveApiSecret()">Save API Secret to Browser</button>
+        <div id="secretStatus"></div>
+    </div>
+    
+    <div class="section">
+        <h2>Step 2: Test Connection</h2>
+        <button onclick="testConnection()">Test API Connection</button>
+        <div id="connectionStatus"></div>
+    </div>
+    
+    <div class="section">
+        <h2>Step 3: Check Current Profile</h2>
+        <button onclick="checkProfile()">Check Current Profile</button>
+        <div id="profileStatus"></div>
+    </div>
+    
+    <div class="section">
+        <h2>Step 4: Manual Profile Entry</h2>
+        <p>If the automatic methods don't work, go to the profile editor:</p>
+        <a href="/profile" target="_blank">Open Profile Editor</a>
+        <p>The API secret has been saved, so authentication should work.</p>
+    </div>
+    
+    <div class="section">
+        <h2>MongoDB Command (for manual insertion)</h2>
+        <pre>
+use nightscout-tenant-clinic2
+db.profile.insertOne({
+  "defaultProfile": "Default",
+  "store": {
+    "Default": {
+      "dia": 4,
+      "timezone": "America/Chicago",
+      "carbratio": [{"time": "00:00", "value": 10}],
+      "sens": [{"time": "00:00", "value": 50}],
+      "basal": [{"time": "00:00", "value": 1.0}],
+      "target_low": [{"time": "00:00", "value": 80}],
+      "target_high": [{"time": "00:00", "value": 120}],
+      "units": "mg/dl"
+    }
+  },
+  "startDate": new Date().toISOString(),
+  "mills": Date.now(),
+  "units": "mg/dl"
+})
+        </pre>
+    </div>
+    
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script>
+    function saveApiSecret() {
+        localStorage.setItem('apisecrethash', '51a26cb40dcca4fd97601d00f8253129091c06ca');
+        $('#secretStatus').html('<p class="success">API Secret saved to localStorage!</p>');
+    }
+    
+    function testConnection() {
+        var hash = localStorage.getItem('apisecrethash');
+        if (!hash) {
+            $('#connectionStatus').html('<p class="error">Please save API secret first!</p>');
+            return;
+        }
+        
+        $('#connectionStatus').html('<p>Testing connection...</p>');
+        
+        $.ajax({
+            url: '/api/v1/status.json',
+            headers: {
+                'api-secret': hash
+            },
+            success: function(data) {
+                $('#connectionStatus').html('<p class="success">Connection successful! API is working.</p>' +
+                    '<pre>' + JSON.stringify(data, null, 2) + '</pre>');
+            },
+            error: function(xhr) {
+                $('#connectionStatus').html('<p class="error">Connection failed: ' + xhr.status + '</p>');
+            }
+        });
+    }
+    
+    function checkProfile() {
+        var hash = localStorage.getItem('apisecrethash');
+        if (!hash) {
+            $('#profileStatus').html('<p class="error">Please save API secret first!</p>');
+            return;
+        }
+        
+        $('#profileStatus').html('<p>Checking profile...</p>');
+        
+        $.ajax({
+            url: '/api/v1/profile',
+            headers: {
+                'api-secret': hash
+            },
+            success: function(data) {
+                if (data && data.length > 0) {
+                    $('#profileStatus').html('<p class="success">Profile exists!</p>' +
+                        '<pre>' + JSON.stringify(data, null, 2) + '</pre>' +
+                        '<p><a href="/">Go to main page</a></p>');
+                } else {
+                    $('#profileStatus').html('<p class="error">No profile found. Use the profile editor to create one.</p>');
+                }
+            },
+            error: function(xhr) {
+                $('#profileStatus').html('<p class="error">Error checking profile: ' + xhr.status + 
+                    ' - This is expected if no profile exists yet.</p>' +
+                    '<p>The 500 error suggests the profile collection may not exist yet.</p>' +
+                    '<p>Try using the <a href="/profile">Profile Editor</a> to create the first profile.</p>');
+            }
+        });
+    }
+    
+    // Auto-save the API secret on page load
+    $(document).ready(function() {
+        saveApiSecret();
+    });
+    </script>
+</body>
+</html>

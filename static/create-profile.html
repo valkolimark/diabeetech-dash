@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Create Default Profile - Diabeetech</title>
+    <meta charset="utf-8">
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+</head>
+<body>
+    <h1>Create Default Profile</h1>
+    <div id="status">Click the button below to create a default profile...</div>
+    <br>
+    <button id="createProfile">Create Default Profile</button>
+    <br><br>
+    <div id="result"></div>
+    
+    <script>
+    $('#createProfile').click(function() {
+        var authToken = localStorage.getItem('authToken');
+        
+        if (!authToken) {
+            $('#status').text('Error: No authentication token found. Please login first.');
+            window.location.href = '/login';
+            return;
+        }
+        
+        $('#status').text('Creating profile...');
+        
+        var profileData = {
+            "_id": "defaultProfile",
+            "defaultProfile": "Default", 
+            "startDate": new Date().toISOString(),
+            "mills": Date.now(),
+            "units": "mg/dl",
+            "dia": 4,
+            "timezone": "America/Chicago",
+            "basal": [{"time": "00:00", "value": 1.0}],
+            "carbratio": [{"time": "00:00", "value": 10}],
+            "sens": [{"time": "00:00", "value": 50}],
+            "target_low": [{"time": "00:00", "value": 80}],
+            "target_high": [{"time": "00:00", "value": 120}],
+            "carbs_hr": 20,
+            "delay": 20
+        };
+        
+        // Try different endpoints and methods
+        var attempts = [
+            {
+                url: '/api/v1/profile',
+                method: 'POST',
+                data: profileData
+            },
+            {
+                url: '/api/v1/profile/',
+                method: 'POST', 
+                data: profileData
+            },
+            {
+                url: '/api/v1/profiles',
+                method: 'POST',
+                data: profileData
+            }
+        ];
+        
+        var tryNext = function(index) {
+            if (index >= attempts.length) {
+                $('#status').text('All attempts failed. Profile creation may require additional permissions.');
+                $('#result').html('<p>You may need to:</p><ul>' +
+                    '<li>Configure API_SECRET on the server</li>' +
+                    '<li>Grant profile creation permissions to your user</li>' + 
+                    '<li>Import the profile directly to MongoDB</li></ul>' +
+                    '<p><a href="/">Return to main page</a></p>');
+                return;
+            }
+            
+            var attempt = attempts[index];
+            $('#status').text('Trying: ' + attempt.method + ' ' + attempt.url);
+            
+            $.ajax({
+                url: attempt.url,
+                method: attempt.method,
+                headers: {
+                    'Authorization': 'Bearer ' + authToken,
+                    'Content-Type': 'application/json'
+                },
+                data: JSON.stringify(attempt.data),
+                success: function(response) {
+                    $('#status').text('Success! Profile created.');
+                    $('#result').html('<pre>' + JSON.stringify(response, null, 2) + '</pre>' +
+                        '<p><a href="/">Go to main page</a></p>');
+                },
+                error: function(xhr) {
+                    console.log('Attempt failed:', attempt, xhr);
+                    $('#result').append('<p>Failed: ' + attempt.url + ' - ' + xhr.status + ' ' + xhr.responseText + '</p>');
+                    
+                    // Try with API secret hash if available
+                    var apiSecretHash = localStorage.getItem('apisecrethash');
+                    if (apiSecretHash && index === 0) {
+                        $('#status').text('Retrying with API secret...');
+                        $.ajax({
+                            url: attempt.url,
+                            method: attempt.method,
+                            headers: {
+                                'api-secret': apiSecretHash,
+                                'Content-Type': 'application/json'
+                            },
+                            data: JSON.stringify(attempt.data),
+                            success: function(response) {
+                                $('#status').text('Success with API secret! Profile created.');
+                                $('#result').html('<pre>' + JSON.stringify(response, null, 2) + '</pre>' +
+                                    '<p><a href="/">Go to main page</a></p>');
+                            },
+                            error: function(xhr2) {
+                                tryNext(index + 1);
+                            }
+                        });
+                    } else {
+                        tryNext(index + 1);
+                    }
+                }
+            });
+        };
+        
+        tryNext(0);
+    });
+    
+    // Check if logged in
+    if (!localStorage.getItem('authToken')) {
+        $('#status').text('Not logged in. Redirecting to login page...');
+        window.location.href = '/login';
+    }
+    </script>
+</body>
+</html>

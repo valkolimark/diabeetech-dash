@@ -1,0 +1,14 @@
+[{
+  "_id": "defaultProfile",
+  "defaultProfile": "Default",
+  "startDate": "2024-01-01T00:00:00.000Z",
+  "mills": 1704067200000,
+  "units": "mg/dl",
+  "dia": 4,
+  "timezone": "America/Chicago",
+  "basal": [{"time": "00:00", "value": 1.0}],
+  "carbratio": [{"time": "00:00", "value": 10}],
+  "sens": [{"time": "00:00", "value": 50}],
+  "target_low": [{"time": "00:00", "value": 80}],
+  "target_high": [{"time": "00:00", "value": 120}]
+}]

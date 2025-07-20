@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Profile - Diabeetech</title>
+    <meta charset="utf-8">
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .section { margin: 20px 0; padding: 20px; border: 1px solid #ccc; }
+        pre { background: #f0f0f0; padding: 10px; overflow: auto; }
+        .success { color: green; }
+        .error { color: red; }
+    </style>
+</head>
+<body>
+    <h1>Profile Debug Tool</h1>
+    
+    <div class="section">
+        <h2>Current WebSocket Data</h2>
+        <p>Open the browser console and refresh the main page to see WebSocket data.</p>
+        <button onclick="checkWebSocketData()">Check Console for Instructions</button>
+        <div id="wsData"></div>
+    </div>
+    
+    <div class="section">
+        <h2>Force Profile Reload</h2>
+        <button onclick="forceReload()">Clear Cache and Reload</button>
+    </div>
+    
+    <div class="section">
+        <h2>Manual Override</h2>
+        <p>This will temporarily bypass the profile check:</p>
+        <button onclick="bypassProfileCheck()">Bypass Profile Check</button>
+    </div>
+    
+    <script>
+    function checkWebSocketData() {
+        $('#wsData').html(`
+            <p>To debug the profile issue:</p>
+            <ol>
+                <li>Open browser console (F12)</li>
+                <li>Go to the main page: <a href="/">https://clinic2.diabeetech.net/</a></li>
+                <li>Look for the line: "dataUpdate received:"</li>
+                <li>Check if profiles array is empty</li>
+                <li>If empty, the server isn't loading the profile from MongoDB</li>
+            </ol>
+            <p>Current localStorage data:</p>
+            <pre>authToken: ${localStorage.getItem('authToken') ? 'Present' : 'Missing'}</pre>
+            <pre>apisecrethash: ${localStorage.getItem('apisecrethash') || 'Missing'}</pre>
+        `);
+    }
+    
+    function forceReload() {
+        // Clear any cached data
+        localStorage.removeItem('profileCache');
+        sessionStorage.clear();
+        
+        // Force reload
+        window.location.href = '/?t=' + Date.now();
+    }
+    
+    function bypassProfileCheck() {
+        // This is a temporary fix - inject a fake profile into localStorage
+        const fakeProfile = {
+            "_id": "temp",
+            "defaultProfile": "Default", 
+            "store": {
+                "Default": {
+                    "dia": 4,
+                    "timezone": "America/Chicago",
+                    "carbratio": [{"time": "00:00", "value": 10}],
+                    "sens": [{"time": "00:00", "value": 50}],
+                    "basal": [{"time": "00:00", "value": 1.0}],
+                    "target_low": [{"time": "00:00", "value": 80}],
+                    "target_high": [{"time": "00:00", "value": 120}],
+                    "units": "mg/dl"
+                }
+            },
+            "startDate": new Date().toISOString(),
+            "mills": Date.now()
+        };
+        
+        // Save to localStorage
+        localStorage.setItem('tempProfile', JSON.stringify(fakeProfile));
+        localStorage.setItem('bypassProfileCheck', 'true');
+        
+        alert('Profile check bypass enabled. Go to main page.');
+        window.location.href = '/';
+    }
+    
+    // Also log WebSocket data if available
+    if (window.socket && window.socket.on) {
+        window.socket.on('dataUpdate', function(data) {
+            console.log('Debug: WebSocket data received', data);
+            if (data.profiles) {
+                console.log('Debug: Profiles count:', data.profiles.length);
+                console.log('Debug: Profiles data:', data.profiles);
+            }
+        });
+    }
+    </script>
+</body>
+</html>
