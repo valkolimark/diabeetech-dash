@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Create Your Nightscout Account - Diabeetech</title>
+  <link href="/css/main.css" rel="stylesheet" type="text/css">
+  <style>
+    body {
+      font-family: 'Open Sans', Arial, sans-serif;
+      background: #f5f5f5;
+      margin: 0;
+      padding: 0;
+    }
+    
+    .registration-container {
+      max-width: 600px;
+      margin: 40px auto;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      padding: 40px;
+    }
+    
+    h1 {
+      color: #333;
+      text-align: center;
+      margin-bottom: 10px;
+    }
+    
+    .subtitle {
+      text-align: center;
+      color: #666;
+      margin-bottom: 30px;
+    }
+    
+    .form-section {
+      margin-bottom: 30px;
+      padding: 20px;
+      background: #f9f9f9;
+      border-radius: 8px;
+    }
+    
+    .form-section h3 {
+      margin-top: 0;
+      color: #444;
+      border-bottom: 2px solid #007cba;
+      padding-bottom: 10px;
+    }
+    
+    .form-group {
+      margin-bottom: 20px;
+    }
+    
+    label {
+      display: block;
+      margin-bottom: 5px;
+      color: #555;
+      font-weight: 600;
+    }
+    
+    input[type="text"],
+    input[type="email"],
+    input[type="password"],
+    select {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 16px;
+      box-sizing: border-box;
+    }
+    
+    input:focus {
+      outline: none;
+      border-color: #007cba;
+    }
+    
+    .help-text {
+      font-size: 14px;
+      color: #666;
+      margin-top: 5px;
+    }
+    
+    .username-preview {
+      padding: 10px;
+      background: #e8f4f8;
+      border-radius: 4px;
+      margin-top: 5px;
+      font-size: 14px;
+    }
+    
+    .optional-label {
+      color: #888;
+      font-weight: normal;
+      font-size: 14px;
+    }
+    
+    .checkbox-group {
+      display: flex;
+      align-items: center;
+      margin: 10px 0;
+    }
+    
+    .checkbox-group input {
+      margin-right: 10px;
+    }
+    
+    .collapsible {
+      background: #f0f0f0;
+      padding: 10px;
+      border-radius: 4px;
+      margin-top: 10px;
+    }
+    
+    .submit-button {
+      width: 100%;
+      padding: 15px;
+      background: #007cba;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      font-size: 18px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    
+    .submit-button:hover {
+      background: #005a87;
+    }
+    
+    .submit-button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+    
+    .error-message {
+      background: #fee;
+      color: #c33;
+      padding: 10px;
+      border-radius: 4px;
+      margin-bottom: 20px;
+      display: none;
+    }
+    
+    .success-message {
+      background: #efe;
+      color: #393;
+      padding: 10px;
+      border-radius: 4px;
+      margin-bottom: 20px;
+      display: none;
+    }
+    
+    .loading {
+      display: none;
+      text-align: center;
+      margin: 20px 0;
+    }
+    
+    .terms {
+      font-size: 14px;
+      color: #666;
+      margin: 20px 0;
+      text-align: center;
+    }
+    
+    .login-link {
+      text-align: center;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="registration-container">
+    <h1>Create Your Nightscout Account</h1>
+    <p class="subtitle">Get started with continuous glucose monitoring in minutes</p>
+    
+    <div class="error-message" id="errorMessage"></div>
+    <div class="success-message" id="successMessage"></div>
+    
+    <form id="registrationForm">
+      <!-- Basic Account Information -->
+      <div class="form-section">
+        <h3>Account Information</h3>
+        
+        <div class="form-group">
+          <label for="username">Username</label>
+          <input type="text" id="username" name="username" required 
+                 pattern="[a-zA-Z0-9][a-zA-Z0-9-]{1,61}[a-zA-Z0-9]"
+                 placeholder="Choose your username">
+          <div class="username-preview" id="usernamePreview">
+            Your Nightscout URL will be: <strong>https://[username].diabeetech.net</strong>
+          </div>
+          <div class="help-text">3-63 characters, letters, numbers, and hyphens only</div>
+        </div>
+        
+        <div class="form-group">
+          <label for="email">Email Address</label>
+          <input type="email" id="email" name="email" required 
+                 placeholder="your@email.com">
+        </div>
+        
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input type="password" id="password" name="password" required 
+                 minlength="8" placeholder="At least 8 characters">
+        </div>
+        
+        <div class="form-group">
+          <label for="displayName">Display Name <span class="optional-label">(optional)</span></label>
+          <input type="text" id="displayName" name="displayName" 
+                 placeholder="Your name or nickname">
+        </div>
+        
+        <div class="form-group">
+          <label for="units">Glucose Units</label>
+          <select id="units" name="units" required>
+            <option value="mg/dl">mg/dL</option>
+            <option value="mmol">mmol/L</option>
+          </select>
+        </div>
+      </div>
+      
+      <!-- Dexcom Integration -->
+      <div class="form-section">
+        <h3>Dexcom Integration <span class="optional-label">(optional)</span></h3>
+        <p class="help-text">Connect your Dexcom CGM to automatically import glucose readings</p>
+        
+        <div class="checkbox-group">
+          <input type="checkbox" id="enableDexcom" name="enableDexcom">
+          <label for="enableDexcom">Enable Dexcom Share/Follow</label>
+        </div>
+        
+        <div id="dexcomFields" class="collapsible" style="display: none;">
+          <div class="form-group">
+            <label for="dexcomUsername">Dexcom Username</label>
+            <input type="text" id="dexcomUsername" name="dexcomUsername" 
+                   placeholder="Your Dexcom Share username">
+          </div>
+          
+          <div class="form-group">
+            <label for="dexcomPassword">Dexcom Password</label>
+            <input type="password" id="dexcomPassword" name="dexcomPassword" 
+                   placeholder="Your Dexcom Share password">
+          </div>
+          
+          <p class="help-text">
+            Note: Your Dexcom credentials are encrypted and only used to fetch your glucose data.
+          </p>
+        </div>
+      </div>
+      
+      <!-- CareLink Integration -->
+      <div class="form-section">
+        <h3>MiniMed Connect <span class="optional-label">(optional)</span></h3>
+        <p class="help-text">Connect your Medtronic pump via CareLink</p>
+        
+        <div class="checkbox-group">
+          <input type="checkbox" id="enableCarelink" name="enableCarelink">
+          <label for="enableCarelink">Enable MiniMed Connect</label>
+        </div>
+        
+        <div id="carelinkFields" class="collapsible" style="display: none;">
+          <div class="form-group">
+            <label for="carelinkUsername">CareLink Username</label>
+            <input type="text" id="carelinkUsername" name="carelinkUsername" 
+                   placeholder="Your CareLink username">
+          </div>
+          
+          <div class="form-group">
+            <label for="carelinkPassword">CareLink Password</label>
+            <input type="password" id="carelinkPassword" name="carelinkPassword" 
+                   placeholder="Your CareLink password">
+          </div>
+        </div>
+      </div>
+      
+      <p class="terms">
+        By creating an account, you agree to our Terms of Service and Privacy Policy.
+      </p>
+      
+      <button type="submit" class="submit-button" id="submitButton">
+        Create My Nightscout Account
+      </button>
+      
+      <div class="loading" id="loading">
+        <img src="/images/loading.gif" alt="Loading...">
+        <p>Creating your account...</p>
+      </div>
+    </form>
+    
+    <div class="login-link">
+      Already have an account? <a href="/login">Sign in</a>
+    </div>
+  </div>
+  
+  <script src="/js/jquery/jquery.min.js"></script>
+  <script>
+    $(document).ready(function() {
+      // Username preview
+      $('#username').on('input', function() {
+        const username = $(this).val().toLowerCase().replace(/[^a-z0-9-]/g, '');
+        if (username) {
+          $('#usernamePreview').html(
+            'Your Nightscout URL will be: <strong>https://' + username + '.diabeetech.net</strong>'
+          );
+        } else {
+          $('#usernamePreview').html(
+            'Your Nightscout URL will be: <strong>https://[username].diabeetech.net</strong>'
+          );
+        }
+      });
+      
+      // Toggle optional sections
+      $('#enableDexcom').change(function() {
+        if ($(this).is(':checked')) {
+          $('#dexcomFields').slideDown();
+          $('#dexcomUsername, #dexcomPassword').attr('required', true);
+        } else {
+          $('#dexcomFields').slideUp();
+          $('#dexcomUsername, #dexcomPassword').attr('required', false);
+        }
+      });
+      
+      $('#enableCarelink').change(function() {
+        if ($(this).is(':checked')) {
+          $('#carelinkFields').slideDown();
+          $('#carelinkUsername, #carelinkPassword').attr('required', true);
+        } else {
+          $('#carelinkFields').slideUp();
+          $('#carelinkUsername, #carelinkPassword').attr('required', false);
+        }
+      });
+      
+      // Form submission
+      $('#registrationForm').submit(function(e) {
+        e.preventDefault();
+        
+        $('#errorMessage').hide();
+        $('#successMessage').hide();
+        $('#submitButton').prop('disabled', true);
+        $('#loading').show();
+        
+        const formData = {
+          username: $('#username').val(),
+          email: $('#email').val(),
+          password: $('#password').val(),
+          displayName: $('#displayName').val(),
+          units: $('#units').val()
+        };
+        
+        // Add Dexcom if enabled
+        if ($('#enableDexcom').is(':checked')) {
+          formData.dexcom = {
+            username: $('#dexcomUsername').val(),
+            password: $('#dexcomPassword').val()
+          };
+        }
+        
+        // Add CareLink if enabled
+        if ($('#enableCarelink').is(':checked')) {
+          formData.carelink = {
+            username: $('#carelinkUsername').val(),
+            password: $('#carelinkPassword').val()
+          };
+        }
+        
+        $.ajax({
+          url: '/api/tenants/register',
+          method: 'POST',
+          contentType: 'application/json',
+          data: JSON.stringify(formData),
+          success: function(response) {
+            $('#successMessage').text('Account created successfully! Redirecting...').show();
+            
+            // Store auth token
+            if (response.auth && response.auth.token) {
+              localStorage.setItem('authToken', response.auth.token);
+            }
+            
+            // Redirect to their new Nightscout instance
+            setTimeout(function() {
+              window.location.href = response.tenant.url;
+            }, 2000);
+          },
+          error: function(xhr) {
+            $('#loading').hide();
+            $('#submitButton').prop('disabled', false);
+            
+            const error = xhr.responseJSON || {};
+            $('#errorMessage').text(error.message || 'Failed to create account. Please try again.').show();
+          }
+        });
+      });
+    });
+  </script>
+</body>
+</html>
