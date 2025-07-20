@@ -188,7 +188,7 @@
         <div class="form-group">
           <label for="username">Username</label>
           <input type="text" id="username" name="username" required 
-                 pattern="[a-zA-Z0-9][a-zA-Z0-9-]{1,61}[a-zA-Z0-9]"
+                 pattern="[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?"
                  placeholder="Choose your username">
           <div class="username-preview" id="usernamePreview">
             Your Nightscout URL will be: <strong>https://[username].diabeetech.net</strong>
@@ -368,7 +368,7 @@
         }
         
         $.ajax({
-          url: '/api/tenants/register',
+          url: '/api/register',
           method: 'POST',
           contentType: 'application/json',
           data: JSON.stringify(formData),
