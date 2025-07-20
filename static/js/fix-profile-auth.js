@@ -1,11 +1,11 @@
 // Fix profile authentication issue
-(function() {
+(function profileAuthFix() {
   'use strict';
   
   // Ensure auth-check.js is loaded first
   if (!window.authCheckLoaded) {
     console.log('Waiting for auth-check.js to load...');
-    setTimeout(arguments.callee, 100);
+    setTimeout(profileAuthFix, 100);
     return;
   }
   
