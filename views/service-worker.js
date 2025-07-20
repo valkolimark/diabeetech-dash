@@ -1,6 +1,7 @@
 'use strict';
 
 var CACHE = '<%= locals.cachebuster %>';
+var SW_VERSION = '<%= locals.version || "1.0.0" %>';
 
 const CACHE_LIST = [
     '/images/launch.png',
@@ -132,6 +133,7 @@ function fromCache(request) {
 // On install, cache some resources.
 self.addEventListener('install', (evt) => {
   // console.log('The service worker is being installed.');
+  // Force the new service worker to activate immediately
   self.skipWaiting();
   evt.waitUntil(precache());
 });
@@ -147,6 +149,20 @@ function inCache(request) {
 }
 
 self.addEventListener('fetch', (evt) => {
+  // Skip cache for bundle.app.js to ensure fresh code is loaded
+  if (evt.request.url.includes('/bundle/js/bundle.app.js') || evt.request.url.includes('/bundle/js/bundle.clock.js')) {
+    evt.respondWith(
+      fetch(evt.request, { cache: 'no-cache' }).then((response) => {
+        // Update cache with fresh version
+        return caches.open(CACHE).then((cache) => {
+          cache.put(evt.request, response.clone());
+          return response;
+        });
+      })
+    );
+    return;
+  }
+  
   if (!evt.request.url.startsWith(self.location.origin) || CACHE === 'developmentMode' || !inCache(evt.request) || evt.request.method !== 'GET') {
     //console.log('Skipping cache for ',  evt.request.url);
     return void evt.respondWith(fetch(evt.request));
@@ -164,11 +180,14 @@ self.addEventListener('activate', (event) => {
       return Promise.all(
         cacheNames.map((cacheName) => {
           if (cacheName !== CACHE) {
-            // console.log('Deleting out of date cache:', cacheName);
+            console.log('Deleting out of date cache:', cacheName);
             return caches.delete(cacheName);
           }
         })
       );
+    }).then(() => {
+      // Take control of all pages immediately
+      return self.clients.claim();
     }));
 
 });
