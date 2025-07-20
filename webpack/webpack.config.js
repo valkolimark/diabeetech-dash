@@ -152,8 +152,8 @@ module.exports = {
   output: {
     path: path.resolve(projectRoot, './node_modules/.cache/_ns_cache/public'),
     publicPath,
-    filename: 'js/bundle.[name].js',
-    sourceMapFilename: 'js/bundle.[name].js.map',
+    filename: 'js/bundle.[name].v2.js',
+    sourceMapFilename: 'js/bundle.[name].v2.js.map',
   },
   devtool: sourceMapType,
   optimization,
