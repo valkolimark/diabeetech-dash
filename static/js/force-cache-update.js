@@ -3,7 +3,7 @@
   console.log('[CACHE-UPDATE] Starting forced cache update process');
   
   // Check if this is the first visit after deployment
-  const DEPLOYMENT_VERSION = 'v2-profile-fix-' + Date.now();
+  const DEPLOYMENT_VERSION = 'v2-profile-fix-2024-01-20';  // Fixed version, not dynamic
   const LAST_VERSION_KEY = 'nightscout-deployment-version';
   const lastVersion = localStorage.getItem(LAST_VERSION_KEY);
   
