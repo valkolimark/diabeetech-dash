@@ -5,10 +5,10 @@ async function fixOnepanmanSettings() {
   
   try {
     // Get connection string from environment
-    const uri = process.env.MONGODB_URI || process.env.MONGO_CONNECTION || process.env.CONNECTION_STRING;
+    const uri = process.env.MASTER_MONGODB_URI || process.env.MONGODB_URI || process.env.MONGO_CONNECTION || process.env.CONNECTION_STRING;
     
     if (!uri) {
-      throw new Error('No MongoDB connection string found. Please set MONGODB_URI environment variable.');
+      throw new Error('No MongoDB connection string found. Please set MASTER_MONGODB_URI environment variable.');
     }
     
     console.log('Connecting to MongoDB...');
