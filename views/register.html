@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Create Your Nightscout Account - Diabeetech</title>
+  <title>Create Your Diabeetech Account</title>
   <link href="/css/main.css" rel="stylesheet" type="text/css">
   <% if (captchaConfig && captchaConfig.enabled) { %>
   <script src="https://js.hcaptcha.com/1/api.js" async defer></script>
@@ -177,7 +177,7 @@
 </head>
 <body>
   <div class="registration-container">
-    <h1>Create Your Nightscout Account</h1>
+    <h1>Create Your Diabeetech Account</h1>
     <p class="subtitle">Get started with continuous glucose monitoring in minutes</p>
     
     <div class="error-message" id="errorMessage"></div>
@@ -291,7 +291,7 @@
       <% } %>
       
       <button type="submit" class="submit-button" id="submitButton">
-        Create My Nightscout Account
+        Create My Diabeetech Account
       </button>
       
       <div class="loading" id="loading">
@@ -315,11 +315,11 @@
         // Update preview
         if (username) {
           $('#usernamePreview').html(
-            'Your Nightscout URL will be: <strong>https://' + username + '.diabeetech.net</strong>'
+            'Your Diabeetech URL will be: <strong>https://' + username + '.diabeetech.net</strong>'
           );
         } else {
           $('#usernamePreview').html(
-            'Your Nightscout URL will be: <strong>https://[username].diabeetech.net</strong>'
+            'Your Diabeetech URL will be: <strong>https://[username].diabeetech.net</strong>'
           );
         }
         
