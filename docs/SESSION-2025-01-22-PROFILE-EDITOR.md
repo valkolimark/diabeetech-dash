@@ -44,6 +44,8 @@ All endpoints under `/sprofile/api/`:
 - `POST /save` - Create or update profile
 - `DELETE /delete/:id` - Delete specific profile
 
+**Note**: The API is fully accessible for external clients! All endpoints work with cookie authentication and can be adapted for JWT tokens. See PROFILE-EDITOR-ARCHITECTURE.md for detailed API documentation and usage examples.
+
 ### 5. Key Features Implemented ✅
 - **Profile Management**: Create, edit, delete, and switch between profiles
 - **Time-Based Settings**: 
@@ -132,10 +134,13 @@ curl -H "Cookie: nightscout_token=XXX" \
 5. Add profile validation for clinical safety
 
 ## Deployment Status
-- ✅ Code deployed to Heroku (v166)
+- ✅ Code deployed to Heroku (v168)
 - ✅ Profile added to ENABLE configuration
 - ✅ Route accessible at `/sprofile`
-- ⏳ Awaiting user testing feedback
+- ✅ Save functionality fixed (handles legacy string IDs)
+- ✅ UI improved with collapsible sections
+- ✅ Timezone dropdown prevents invalid entries
+- ✅ API fully functional for external access
 
 ## Key Learnings
 - The pattern established with clocks and food works consistently
