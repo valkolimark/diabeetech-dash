@@ -49,9 +49,38 @@
       }
       
       .profile-section h3 {
-        margin-top: 0;
-        margin-bottom: 15px;
+        margin: 0;
+        padding: 10px 0;
         color: #333;
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        user-select: none;
+      }
+      
+      .profile-section h3:hover {
+        color: #007bff;
+      }
+      
+      .profile-section h3::after {
+        content: '▼';
+        font-size: 14px;
+        transition: transform 0.3s;
+      }
+      
+      .profile-section.collapsed h3::after {
+        transform: rotate(-90deg);
+      }
+      
+      .profile-content {
+        padding-top: 15px;
+        transition: all 0.3s ease;
+        overflow: hidden;
+      }
+      
+      .profile-section.collapsed .profile-content {
+        display: none;
       }
       
       .form-group {
@@ -208,9 +237,10 @@
       
       <div id="alerts"></div>
       
-      <div class="profile-section">
-        <h3>Profile Management</h3>
-        <div class="profile-selector">
+      <div class="profile-section" id="profileManagement">
+        <h3 onclick="toggleSection('profileManagement')">Profile Management</h3>
+        <div class="profile-content">
+          <div class="profile-selector">
           <select id="profileSelect">
             <option value="">New Profile</option>
             <% if (locals.profiles && locals.profiles.length > 0) { %>
@@ -226,14 +256,16 @@
             <button class="btn btn-danger" onclick="deleteProfile()">Delete</button>
           </div>
         </div>
+        </div>
       </div>
       
       <form id="profileForm">
         <input type="hidden" id="profileId" value="<%= locals.profile ? locals.profile._id : '' %>">
         
-        <div class="profile-section">
-          <h3>General Settings</h3>
-          <div class="grid-2">
+        <div class="profile-section" id="generalSettings">
+          <h3 onclick="toggleSection('generalSettings')">General Settings</h3>
+          <div class="profile-content">
+            <div class="grid-2">
             <div class="form-group">
               <label for="defaultProfile">Profile Name</label>
               <input type="text" id="defaultProfile" value="<%= locals.profile ? locals.profile.defaultProfile || 'Default' : 'Default' %>" required>
@@ -251,49 +283,84 @@
             </div>
             <div class="form-group">
               <label for="timezone">Timezone</label>
-              <input type="text" id="timezone" value="<%= locals.profile && locals.profile.timezone ? locals.profile.timezone : 'UTC' %>" placeholder="e.g., US/Central">
+              <select id="timezone">
+                <option value="UTC" <%= (!locals.profile || !locals.profile.timezone || locals.profile.timezone === 'UTC') ? 'selected' : '' %>>UTC</option>
+                <option value="US/Eastern" <%= (locals.profile && locals.profile.timezone === 'US/Eastern') ? 'selected' : '' %>>US/Eastern</option>
+                <option value="US/Central" <%= (locals.profile && locals.profile.timezone === 'US/Central') ? 'selected' : '' %>>US/Central</option>
+                <option value="US/Mountain" <%= (locals.profile && locals.profile.timezone === 'US/Mountain') ? 'selected' : '' %>>US/Mountain</option>
+                <option value="US/Pacific" <%= (locals.profile && locals.profile.timezone === 'US/Pacific') ? 'selected' : '' %>>US/Pacific</option>
+                <option value="Europe/London" <%= (locals.profile && locals.profile.timezone === 'Europe/London') ? 'selected' : '' %>>Europe/London</option>
+                <option value="Europe/Berlin" <%= (locals.profile && locals.profile.timezone === 'Europe/Berlin') ? 'selected' : '' %>>Europe/Berlin</option>
+                <option value="Europe/Paris" <%= (locals.profile && locals.profile.timezone === 'Europe/Paris') ? 'selected' : '' %>>Europe/Paris</option>
+                <option value="Europe/Madrid" <%= (locals.profile && locals.profile.timezone === 'Europe/Madrid') ? 'selected' : '' %>>Europe/Madrid</option>
+                <option value="Europe/Rome" <%= (locals.profile && locals.profile.timezone === 'Europe/Rome') ? 'selected' : '' %>>Europe/Rome</option>
+                <option value="Europe/Moscow" <%= (locals.profile && locals.profile.timezone === 'Europe/Moscow') ? 'selected' : '' %>>Europe/Moscow</option>
+                <option value="Asia/Tokyo" <%= (locals.profile && locals.profile.timezone === 'Asia/Tokyo') ? 'selected' : '' %>>Asia/Tokyo</option>
+                <option value="Asia/Shanghai" <%= (locals.profile && locals.profile.timezone === 'Asia/Shanghai') ? 'selected' : '' %>>Asia/Shanghai</option>
+                <option value="Asia/Seoul" <%= (locals.profile && locals.profile.timezone === 'Asia/Seoul') ? 'selected' : '' %>>Asia/Seoul</option>
+                <option value="Asia/Mumbai" <%= (locals.profile && locals.profile.timezone === 'Asia/Mumbai') ? 'selected' : '' %>>Asia/Mumbai</option>
+                <option value="Asia/Dubai" <%= (locals.profile && locals.profile.timezone === 'Asia/Dubai') ? 'selected' : '' %>>Asia/Dubai</option>
+                <option value="Australia/Sydney" <%= (locals.profile && locals.profile.timezone === 'Australia/Sydney') ? 'selected' : '' %>>Australia/Sydney</option>
+                <option value="Australia/Melbourne" <%= (locals.profile && locals.profile.timezone === 'Australia/Melbourne') ? 'selected' : '' %>>Australia/Melbourne</option>
+                <option value="Pacific/Auckland" <%= (locals.profile && locals.profile.timezone === 'Pacific/Auckland') ? 'selected' : '' %>>Pacific/Auckland</option>
+                <option value="America/Toronto" <%= (locals.profile && locals.profile.timezone === 'America/Toronto') ? 'selected' : '' %>>America/Toronto</option>
+                <option value="America/Vancouver" <%= (locals.profile && locals.profile.timezone === 'America/Vancouver') ? 'selected' : '' %>>America/Vancouver</option>
+                <option value="America/Mexico_City" <%= (locals.profile && locals.profile.timezone === 'America/Mexico_City') ? 'selected' : '' %>>America/Mexico_City</option>
+                <option value="America/Sao_Paulo" <%= (locals.profile && locals.profile.timezone === 'America/Sao_Paulo') ? 'selected' : '' %>>America/Sao_Paulo</option>
+                <option value="America/Buenos_Aires" <%= (locals.profile && locals.profile.timezone === 'America/Buenos_Aires') ? 'selected' : '' %>>America/Buenos_Aires</option>
+              </select>
             </div>
+          </div>
           </div>
         </div>
         
-        <div class="profile-section">
-          <h3>Insulin Settings</h3>
-          <div class="form-group">
+        <div class="profile-section" id="insulinSettings">
+          <h3 onclick="toggleSection('insulinSettings')">Insulin Settings</h3>
+          <div class="profile-content">
+            <div class="form-group">
             <label for="dia">Duration of Insulin Action (DIA) - hours</label>
             <input type="number" id="dia" step="0.1" min="1" max="10" value="<%= locals.profile && locals.profile.store && locals.profile.store.Default ? locals.profile.store.Default.dia || 3 : 3 %>" required>
           </div>
+          </div>
         </div>
         
-        <div class="profile-section">
-          <h3>Carb Ratios (I:C)</h3>
-          <p>Grams of carbs per unit of insulin</p>
-          <div id="carbRatios" class="time-values">
+        <div class="profile-section" id="carbRatiosSection">
+          <h3 onclick="toggleSection('carbRatiosSection')">Carb Ratios (I:C)</h3>
+          <div class="profile-content">
+            <p>Grams of carbs per unit of insulin</p>
+            <div id="carbRatios" class="time-values">
             <!-- Carb ratios will be populated here -->
           </div>
-          <button type="button" class="add-time-btn" onclick="addCarbRatio()">Add Time Entry</button>
+            <button type="button" class="add-time-btn" onclick="addCarbRatio()">Add Time Entry</button>
+          </div>
         </div>
         
-        <div class="profile-section">
-          <h3>Insulin Sensitivity Factor (ISF)</h3>
-          <p><%= locals.units === 'mmol' ? 'mmol/L' : 'mg/dL' %> per unit of insulin</p>
-          <div id="sensFactors" class="time-values">
+        <div class="profile-section" id="isfSection">
+          <h3 onclick="toggleSection('isfSection')">Insulin Sensitivity Factor (ISF)</h3>
+          <div class="profile-content">
+            <p><%= locals.units === 'mmol' ? 'mmol/L' : 'mg/dL' %> per unit of insulin</p>
+            <div id="sensFactors" class="time-values">
             <!-- Sensitivity factors will be populated here -->
           </div>
-          <button type="button" class="add-time-btn" onclick="addSensFactor()">Add Time Entry</button>
+            <button type="button" class="add-time-btn" onclick="addSensFactor()">Add Time Entry</button>
+          </div>
         </div>
         
-        <div class="profile-section">
-          <h3>Basal Rates</h3>
-          <p>Units per hour</p>
-          <div id="basalRates" class="time-values">
+        <div class="profile-section" id="basalSection">
+          <h3 onclick="toggleSection('basalSection')">Basal Rates</h3>
+          <div class="profile-content">
+            <p>Units per hour</p>
+            <div id="basalRates" class="time-values">
             <!-- Basal rates will be populated here -->
           </div>
-          <button type="button" class="add-time-btn" onclick="addBasalRate()">Add Time Entry</button>
+            <button type="button" class="add-time-btn" onclick="addBasalRate()">Add Time Entry</button>
+          </div>
         </div>
         
-        <div class="profile-section">
-          <h3>Target Ranges</h3>
-          <div class="grid-2">
+        <div class="profile-section" id="targetSection">
+          <h3 onclick="toggleSection('targetSection')">Target Ranges</h3>
+          <div class="profile-content">
+            <div class="grid-2">
             <div>
               <h4>Target Low</h4>
               <div id="targetLow" class="time-values">
@@ -309,11 +376,13 @@
               <button type="button" class="add-time-btn" onclick="addTargetHigh()">Add Time Entry</button>
             </div>
           </div>
+          </div>
         </div>
         
-        <div class="profile-section">
-          <h3>Carb Absorption</h3>
-          <div class="grid-2">
+        <div class="profile-section" id="carbAbsorptionSection">
+          <h3 onclick="toggleSection('carbAbsorptionSection')">Carb Absorption</h3>
+          <div class="profile-content">
+            <div class="grid-2">
             <div class="form-group">
               <label for="carbsHr">Carb Absorption Rate (g/hour)</label>
               <input type="number" id="carbsHr" step="1" min="1" max="100" value="<%= locals.profile && locals.profile.store && locals.profile.store.Default ? locals.profile.store.Default.carbs_hr || 20 : 20 %>">
@@ -322,6 +391,7 @@
               <label for="delay">Carb Absorption Delay (minutes)</label>
               <input type="number" id="delay" step="1" min="0" max="60" value="<%= locals.profile && locals.profile.store && locals.profile.store.Default ? locals.profile.store.Default.delay || 20 : 20 %>">
             </div>
+          </div>
           </div>
         </div>
         
@@ -332,6 +402,14 @@
     <script>
       // Initialize profile data
       const currentProfile = <%- JSON.stringify(locals.profile || null) %>;
+      
+      // Toggle section collapse/expand
+      function toggleSection(sectionId) {
+        const section = document.getElementById(sectionId);
+        if (section) {
+          section.classList.toggle('collapsed');
+        }
+      }
       
       // Helper function to show alerts
       function showAlert(message, type = 'success') {
