@@ -212,6 +212,41 @@ app.use("/sfood", tenantResolver, requireWebAuth, tenantDataloader, simpleFood()
 - No client-side API authentication required
 - Input validation for all nutritional values
 
+### API Access
+The food API is fully accessible for external clients. All endpoints require authentication via cookie (web) or can be adapted for JWT tokens.
+
+#### Example API Usage
+```bash
+# List all foods (requires authentication cookie)
+curl -H "Cookie: nightscout_token=YOUR_TOKEN" \
+  https://tenant.domain.com/sfood/api/list
+
+# Create a new food item
+curl -X POST \
+  -H "Content-Type: application/json" \
+  -H "Cookie: nightscout_token=YOUR_TOKEN" \
+  -d '{"name":"Apple","carbs":14,"unit":"g","portion":100}' \
+  https://tenant.domain.com/sfood/api/create
+
+# Update a food item
+curl -X PUT \
+  -H "Content-Type: application/json" \
+  -H "Cookie: nightscout_token=YOUR_TOKEN" \
+  -d '{"name":"Apple - Large","carbs":25}' \
+  https://tenant.domain.com/sfood/api/update/FOOD_ID
+
+# Search foods by name
+curl -H "Cookie: nightscout_token=YOUR_TOKEN" \
+  https://tenant.domain.com/sfood/api/search?name=apple
+```
+
+### Implementation Success (January 2025)
+- ✅ Server-side rendering bypasses client API auth issues
+- ✅ Full CRUD operations working via UI and API
+- ✅ Body parsing fixed with `bodyParser.json()` in middleware chain
+- ✅ Tenant isolation verified
+- ✅ Food data persists in tenant-specific MongoDB collections
+
 ## Key Files
 
 ### Core Multi-Tenant Files
