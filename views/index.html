@@ -170,8 +170,8 @@
         <li><a id="reportlink" href="report" target="reports" class="translate">Reports</a></li>
         <li class="needsadminaccess"><a id="editprofilelink" href="/sprofile" target="_self" class="translate">Profile Editor</a></li>
         <li class="needsadminaccess foodcontrol"><a id="editfoodlink" href="/sfood" target="_self" class="translate">Food Editor</a></li>
-        <% if (locals.tenant && locals.tenant.isAdmin) { %>
-        <li class="needsadminaccess"><a id="admintoolslink" href="admin" target="admintools" class="translate">Admin Tools</a></li>
+        <% if (locals && locals.tenant && locals.tenant.isAdmin === true) { %>
+        <li class="tenant-admin-only"><a id="admintoolslink" href="admin" target="admintools" class="translate">Admin Tools</a></li>
         <% } %>
         <li class="multilink">
           <a class="translate">Clock Views:</a>
