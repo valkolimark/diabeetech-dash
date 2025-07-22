@@ -398,4 +398,58 @@ JWT_SECRET=<secure-secret>
 - Time-based settings UI working
 - Tenant isolation for profile data confirmed
 
+## Admin Tools Restriction Implementation (January 2025)
+
+### Problem
+Admin tools were accessible to all tenants, creating security and management concerns in multi-tenant deployments.
+
+### Solution: Tenant-Level Admin Restriction
+Implemented server-side control over admin tools access based on tenant configuration.
+
+### Implementation Details
+1. **Database Schema Update**:
+   - Added `isAdmin` boolean field to tenant model
+   - Default value is `false` for security
+
+2. **Server-Side Protection**:
+   - `/admin` route checks `req.tenant.isAdmin` before rendering
+   - Returns 403 error for non-admin tenants
+   - Authorization API endpoints protected in multi-tenant mode
+   - Admin notifications API requires tenant admin status
+
+3. **UI Changes**:
+   - Admin tools link conditionally rendered based on `tenant.isAdmin`
+   - Changed CSS class from `needsadminaccess` to `tenant-admin-only`
+   - Prevents client-side JavaScript from overriding server control
+
+4. **Middleware Updates**:
+   - Added `tenantResolver` to all app page routes
+   - Ensures tenant context available for rendering decisions
+   - Created `requireTenantAdmin` middleware for API protection
+
+### Files Modified
+- `/lib/models/tenant.js` - Added isAdmin field
+- `/lib/server/app-multitenant.js` - Route protection and middleware
+- `/views/index.html` - Conditional rendering
+- `/lib/api2/index.js` - Authorization API protection
+- `/lib/api/adminnotifiesapi.js` - Admin notifications protection
+
+### MongoDB Commands
+```javascript
+// Enable admin for a tenant
+db.tenants.updateOne(
+  { subdomain: "tenant-name" },
+  { $set: { isAdmin: true } }
+)
+
+// Check tenant admin status
+db.tenants.findOne({ subdomain: "tenant-name" }, { isAdmin: 1 })
+```
+
+### Security Benefits
+- Admin tools only available to explicitly authorized tenants
+- Server-side enforcement prevents bypass attempts
+- Maintains backward compatibility (undefined = false)
+- No performance impact on non-admin tenants
+
 Last Updated: January 2025
