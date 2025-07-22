@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Registration Test</title>
+</head>
+<body>
+  <h1>Captcha Test Page</h1>
+  
+  <p>Captcha Config Debug:</p>
+  <pre>
+    captchaConfig: <%= JSON.stringify(locals.captchaConfig || captchaConfig || {}) %>
+    enabled: <%= (locals.captchaConfig?.enabled || captchaConfig?.enabled) ? 'YES' : 'NO' %>
+    siteKey: <%= locals.captchaConfig?.siteKey || captchaConfig?.siteKey || 'NOT SET' %>
+  </pre>
+  
+  <% if ((locals.captchaConfig && locals.captchaConfig.enabled) || (captchaConfig && captchaConfig.enabled)) { %>
+    <p>hCaptcha SHOULD BE VISIBLE:</p>
+    <script src="https://js.hcaptcha.com/1/api.js" async defer></script>
+    <div class="h-captcha" data-sitekey="<%= locals.captchaConfig?.siteKey || captchaConfig.siteKey %>"></div>
+  <% } else { %>
+    <p>hCaptcha is DISABLED</p>
+  <% } %>
+</body>
+</html>
