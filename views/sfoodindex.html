@@ -3,7 +3,7 @@
 <head>
   <meta name="viewport" content="width=device-width, maximum-scale=1, initial-scale=1, user-scalable=0" />
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <title>Food Editor - <%= tenant.subdomain %></title>
+  <title>Food Editor - <%= locals.tenant.subdomain %></title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -303,9 +303,9 @@
 
   <script>
     // Initial data from server
-    let foods = <%- foods %>;
-    let quickpicks = <%- quickpicks %>;
-    let categories = <%- categories %>;
+    let foods = <%- locals.foods %>;
+    let quickpicks = <%- locals.quickpicks %>;
+    let categories = <%- locals.categories %>;
     
     // Initialize the page
     document.addEventListener('DOMContentLoaded', function() {
