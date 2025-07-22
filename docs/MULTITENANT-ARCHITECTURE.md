@@ -247,6 +247,88 @@ curl -H "Cookie: nightscout_token=YOUR_TOKEN" \
 - ✅ Tenant isolation verified
 - ✅ Food data persists in tenant-specific MongoDB collections
 
+## Profile Editor Implementation
+
+### Why a Separate Profile Module?
+Like clocks and food, the original profile editor (`/profile`) relied on client-side JavaScript making API calls. In multi-tenant mode, these fail due to JWT authentication complexity. The solution was to create a server-side profile editor.
+
+### Solution: Server-Side Profile Editor (`/sprofile`)
+Located in `/lib/server/simple-profile.js`, this module:
+- Renders the profile editor interface server-side
+- Provides direct database access for profile management
+- Supports multiple profiles per tenant with switching
+- Ensures proper tenant isolation for profile data
+
+### Profile Editor Features
+1. **Profile Management**:
+   - Create, edit, and delete profiles
+   - Switch between multiple profiles
+   - Profile naming and start date configuration
+   - Units selection (mg/dL or mmol/L)
+
+2. **Time-Based Settings**:
+   - Carb ratios (I:C) - grams per unit of insulin
+   - Insulin sensitivity factors (ISF) - BG drop per unit
+   - Basal rates - units per hour
+   - Target glucose ranges (low and high)
+   - Multiple time entries for each setting
+
+3. **Insulin & Carb Settings**:
+   - Duration of insulin action (DIA)
+   - Carb absorption rate (g/hour)
+   - Carb absorption delay (minutes)
+   - Timezone configuration
+
+4. **API Endpoints** (all under `/sprofile/api/`):
+   - `GET /current` - Get most recent profile
+   - `GET /list` - List all profiles
+   - `POST /save` - Create or update profile
+   - `DELETE /delete/:id` - Delete specific profile
+
+### Implementation Details
+```javascript
+// Route setup in app-multitenant.js
+const simpleProfile = require('./simple-profile.js');
+app.use("/sprofile", bodyParser.json(), tenantResolver, requireWebAuth, tenantDataloader, simpleProfile());
+
+// Profile data structure
+{
+  _id: ObjectId,
+  defaultProfile: "Default",
+  startDate: "2025-01-22T00:00:00.000Z",
+  units: "mg/dl",
+  timezone: "US/Central",
+  store: {
+    Default: {
+      dia: 3,
+      carbratio: [{ time: "00:00", value: 30 }],
+      carbs_hr: 20,
+      delay: 20,
+      sens: [{ time: "00:00", value: 100 }],
+      basal: [{ time: "00:00", value: 0.5 }],
+      target_low: [{ time: "00:00", value: 80 }],
+      target_high: [{ time: "00:00", value: 120 }],
+      units: "mg/dl"
+    }
+  },
+  created_at: Date
+}
+```
+
+### Security
+- Protected by `requireWebAuth` middleware (same as clocks and food)
+- All data operations are tenant-isolated
+- No client-side API authentication required
+- Input validation for all numeric values and time entries
+
+### Implementation Success (January 2025)
+- ✅ Server-side rendering bypasses client API auth issues
+- ✅ Full profile CRUD operations working
+- ✅ Time-based settings with dynamic UI
+- ✅ Profile switching functionality
+- ✅ Tenant isolation verified
+- ✅ Profile data persists in tenant-specific MongoDB collections
+
 ## Key Files
 
 ### Core Multi-Tenant Files
@@ -262,6 +344,10 @@ curl -H "Cookie: nightscout_token=YOUR_TOKEN" \
 ### Food-Specific Files
 - `/lib/server/simple-food.js` - Server-side food editor implementation
 - `/views/sfoodindex.html` - Food editor interface
+
+### Profile-Specific Files
+- `/lib/server/simple-profile.js` - Server-side profile editor implementation
+- `/views/sprofileindex.html` - Profile editor interface
 
 ## Environment Variables
 ```bash
@@ -291,10 +377,13 @@ JWT_SECRET=<secure-secret>
 ## Future Improvements
 - Fix main dashboard glucose display
 - ~~Implement food log functionality~~ ✓ Completed
+- ~~Implement profile editor~~ ✓ Completed
 - Add more clock customization options
 - Improve mobile responsiveness
 - Add bulk import for common foods
 - Enhance quick pick management UI
+- Add profile import/export functionality
+- Integrate profile with treatment calculations
 
 ## Testing
 - Clock views tested with live Dexcom data
@@ -304,5 +393,9 @@ JWT_SECRET=<secure-secret>
 - Food editor CRUD operations verified
 - Food API endpoints tested
 - Tenant isolation for food data confirmed
+- Profile editor CRUD operations verified
+- Profile switching functionality tested
+- Time-based settings UI working
+- Tenant isolation for profile data confirmed
 
 Last Updated: January 2025
