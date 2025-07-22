@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, maximum-scale=1, initial-scale=1, user-scalable=0" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>Food Editor - <%= tenant.subdomain %></title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: #f5f5f5;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background-color: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #333;
+    }
+    .close-btn {
+      font-size: 24px;
+      text-decoration: none;
+      color: #666;
+      padding: 5px 10px;
+      border-radius: 4px;
+      transition: background-color 0.3s;
+    }
+    .close-btn:hover {
+      background-color: #f0f0f0;
+    }
+    .section {
+      margin-bottom: 30px;
+      padding: 15px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+    .section h2 {
+      margin-top: 0;
+      color: #333;
+    }
+    .filter-controls {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 15px;
+      flex-wrap: wrap;
+    }
+    .filter-controls select, .filter-controls input {
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+    .food-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    .food-table th, .food-table td {
+      padding: 8px;
+      text-align: left;
+      border-bottom: 1px solid #ddd;
+    }
+    .food-table th {
+      background-color: #f8f8f8;
+      font-weight: bold;
+    }
+    .food-table tr:hover {
+      background-color: #f5f5f5;
+    }
+    .btn {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background-color 0.3s;
+    }
+    .btn-primary {
+      background-color: #007bff;
+      color: white;
+    }
+    .btn-primary:hover {
+      background-color: #0056b3;
+    }
+    .btn-danger {
+      background-color: #dc3545;
+      color: white;
+      padding: 4px 8px;
+      font-size: 12px;
+    }
+    .btn-danger:hover {
+      background-color: #c82333;
+    }
+    .btn-success {
+      background-color: #28a745;
+      color: white;
+    }
+    .btn-success:hover {
+      background-color: #218838;
+    }
+    .form-group {
+      margin-bottom: 15px;
+    }
+    .form-group label {
+      display: inline-block;
+      width: 120px;
+      font-weight: bold;
+    }
+    .form-group input, .form-group select {
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      width: 200px;
+    }
+    .form-inline {
+      display: flex;
+      gap: 15px;
+      flex-wrap: wrap;
+      align-items: flex-end;
+    }
+    .form-inline .form-group {
+      margin-bottom: 0;
+    }
+    .quickpick-item {
+      background-color: #f8f8f8;
+      padding: 10px;
+      margin-bottom: 10px;
+      border-radius: 4px;
+      border: 1px solid #ddd;
+    }
+    .quickpick-foods {
+      margin-left: 20px;
+      margin-top: 10px;
+    }
+    .hidden {
+      display: none;
+    }
+    .message {
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 4px;
+      display: none;
+    }
+    .message.success {
+      background-color: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+    .message.error {
+      background-color: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Food Editor</h1>
+      <a href="/" class="close-btn" title="Close">×</a>
+    </div>
+
+    <div id="message" class="message"></div>
+
+    <!-- Filter Section -->
+    <div class="section">
+      <h2>Search Foods</h2>
+      <div class="filter-controls">
+        <select id="filterCategory">
+          <option value="">All Categories</option>
+        </select>
+        <select id="filterSubcategory">
+          <option value="">All Subcategories</option>
+        </select>
+        <input type="text" id="filterName" placeholder="Search by name...">
+        <button class="btn btn-primary" onclick="filterFoods()">Search</button>
+        <button class="btn btn-primary" onclick="clearFilters()">Clear</button>
+      </div>
+      
+      <div id="foodList">
+        <table class="food-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Category</th>
+              <th>Subcategory</th>
+              <th>Portion</th>
+              <th>Unit</th>
+              <th>Carbs (g)</th>
+              <th>Protein (g)</th>
+              <th>Fat (g)</th>
+              <th>Energy (kJ)</th>
+              <th>GI</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="foodTableBody">
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Add/Edit Food Section -->
+    <div class="section">
+      <h2 id="formTitle">Add New Food</h2>
+      <form id="foodForm" onsubmit="saveFood(event)">
+        <input type="hidden" id="foodId">
+        
+        <div class="form-inline">
+          <div class="form-group">
+            <label>Name:</label>
+            <input type="text" id="foodName" required>
+          </div>
+          
+          <div class="form-group">
+            <label>Category:</label>
+            <input type="text" id="foodCategory" list="categoryList">
+            <datalist id="categoryList"></datalist>
+          </div>
+          
+          <div class="form-group">
+            <label>Subcategory:</label>
+            <input type="text" id="foodSubcategory" list="subcategoryList">
+            <datalist id="subcategoryList"></datalist>
+          </div>
+        </div>
+        
+        <div class="form-inline">
+          <div class="form-group">
+            <label>Portion:</label>
+            <input type="number" id="foodPortion" value="100">
+          </div>
+          
+          <div class="form-group">
+            <label>Unit:</label>
+            <select id="foodUnit">
+              <option value="g">g</option>
+              <option value="ml">ml</option>
+              <option value="pcs">pcs</option>
+              <option value="oz">oz</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label>Carbs (g):</label>
+            <input type="number" id="foodCarbs" value="0">
+          </div>
+        </div>
+        
+        <div class="form-inline">
+          <div class="form-group">
+            <label>Protein (g):</label>
+            <input type="number" id="foodProtein" value="0">
+          </div>
+          
+          <div class="form-group">
+            <label>Fat (g):</label>
+            <input type="number" id="foodFat" value="0">
+          </div>
+          
+          <div class="form-group">
+            <label>Energy (kJ):</label>
+            <input type="number" id="foodEnergy" value="0">
+          </div>
+          
+          <div class="form-group">
+            <label>GI:</label>
+            <select id="foodGI">
+              <option value="1">Low</option>
+              <option value="2" selected>Medium</option>
+              <option value="3">High</option>
+            </select>
+          </div>
+        </div>
+        
+        <div style="margin-top: 15px;">
+          <button type="submit" class="btn btn-success">Save Food</button>
+          <button type="button" class="btn btn-primary" onclick="clearForm()">Clear</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Quick Picks Section -->
+    <div class="section">
+      <h2>Quick Picks</h2>
+      <button class="btn btn-primary" onclick="createQuickPick()">Add Quick Pick</button>
+      <label style="margin-left: 20px;">
+        <input type="checkbox" id="showHidden" onchange="renderQuickPicks()"> Show Hidden
+      </label>
+      
+      <div id="quickPicksList" style="margin-top: 15px;">
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Initial data from server
+    let foods = <%- foods %>;
+    let quickpicks = <%- quickpicks %>;
+    let categories = <%- categories %>;
+    
+    // Initialize the page
+    document.addEventListener('DOMContentLoaded', function() {
+      updateCategorySelects();
+      renderFoodTable(foods);
+      renderQuickPicks();
+    });
+    
+    // Update category selects
+    function updateCategorySelects() {
+      const filterCat = document.getElementById('filterCategory');
+      const categoryList = document.getElementById('categoryList');
+      
+      // Clear existing options
+      filterCat.innerHTML = '<option value="">All Categories</option>';
+      categoryList.innerHTML = '';
+      
+      Object.keys(categories).forEach(cat => {
+        filterCat.innerHTML += `<option value="${cat}">${cat}</option>`;
+        categoryList.innerHTML += `<option value="${cat}">`;
+      });
+    }
+    
+    // Update subcategory options based on selected category
+    document.getElementById('filterCategory').addEventListener('change', function() {
+      const filterSubcat = document.getElementById('filterSubcategory');
+      const selectedCat = this.value;
+      
+      filterSubcat.innerHTML = '<option value="">All Subcategories</option>';
+      
+      if (selectedCat && categories[selectedCat]) {
+        categories[selectedCat].forEach(subcat => {
+          filterSubcat.innerHTML += `<option value="${subcat}">${subcat}</option>`;
+        });
+      }
+    });
+    
+    // Update subcategory datalist based on category input
+    document.getElementById('foodCategory').addEventListener('input', function() {
+      const subcategoryList = document.getElementById('subcategoryList');
+      const selectedCat = this.value;
+      
+      subcategoryList.innerHTML = '';
+      
+      if (selectedCat && categories[selectedCat]) {
+        categories[selectedCat].forEach(subcat => {
+          subcategoryList.innerHTML += `<option value="${subcat}">`;
+        });
+      }
+    });
+    
+    // Render food table
+    function renderFoodTable(foodList) {
+      const tbody = document.getElementById('foodTableBody');
+      tbody.innerHTML = '';
+      
+      foodList.forEach(food => {
+        const giText = food.gi == 1 ? 'Low' : food.gi == 3 ? 'High' : 'Medium';
+        tbody.innerHTML += `
+          <tr>
+            <td>${food.name}</td>
+            <td>${food.category || ''}</td>
+            <td>${food.subcategory || ''}</td>
+            <td>${food.portion || 0}</td>
+            <td>${food.unit || 'g'}</td>
+            <td>${food.carbs || 0}</td>
+            <td>${food.protein || 0}</td>
+            <td>${food.fat || 0}</td>
+            <td>${food.energy || 0}</td>
+            <td>${giText}</td>
+            <td>
+              <button class="btn btn-primary" onclick="editFood('${food._id}')">Edit</button>
+              <button class="btn btn-danger" onclick="deleteFood('${food._id}')">Delete</button>
+            </td>
+          </tr>
+        `;
+      });
+    }
+    
+    // Filter foods
+    function filterFoods() {
+      const category = document.getElementById('filterCategory').value;
+      const subcategory = document.getElementById('filterSubcategory').value;
+      const name = document.getElementById('filterName').value.toLowerCase();
+      
+      const filtered = foods.filter(food => {
+        if (category && food.category !== category) return false;
+        if (subcategory && food.subcategory !== subcategory) return false;
+        if (name && !food.name.toLowerCase().includes(name)) return false;
+        return true;
+      });
+      
+      renderFoodTable(filtered);
+    }
+    
+    // Clear filters
+    function clearFilters() {
+      document.getElementById('filterCategory').value = '';
+      document.getElementById('filterSubcategory').value = '';
+      document.getElementById('filterName').value = '';
+      renderFoodTable(foods);
+    }
+    
+    // Edit food
+    function editFood(id) {
+      const food = foods.find(f => f._id === id);
+      if (!food) return;
+      
+      document.getElementById('foodId').value = food._id;
+      document.getElementById('foodName').value = food.name;
+      document.getElementById('foodCategory').value = food.category || '';
+      document.getElementById('foodSubcategory').value = food.subcategory || '';
+      document.getElementById('foodPortion').value = food.portion || 100;
+      document.getElementById('foodUnit').value = food.unit || 'g';
+      document.getElementById('foodCarbs').value = food.carbs || 0;
+      document.getElementById('foodProtein').value = food.protein || 0;
+      document.getElementById('foodFat').value = food.fat || 0;
+      document.getElementById('foodEnergy').value = food.energy || 0;
+      document.getElementById('foodGI').value = food.gi || 2;
+      
+      document.getElementById('formTitle').textContent = 'Edit Food';
+      document.getElementById('foodForm').scrollIntoView({ behavior: 'smooth' });
+    }
+    
+    // Clear form
+    function clearForm() {
+      document.getElementById('foodForm').reset();
+      document.getElementById('foodId').value = '';
+      document.getElementById('formTitle').textContent = 'Add New Food';
+    }
+    
+    // Save food
+    async function saveFood(event) {
+      event.preventDefault();
+      
+      const foodData = {
+        name: document.getElementById('foodName').value,
+        category: document.getElementById('foodCategory').value,
+        subcategory: document.getElementById('foodSubcategory').value,
+        portion: parseInt(document.getElementById('foodPortion').value),
+        unit: document.getElementById('foodUnit').value,
+        carbs: parseInt(document.getElementById('foodCarbs').value),
+        protein: parseInt(document.getElementById('foodProtein').value),
+        fat: parseInt(document.getElementById('foodFat').value),
+        energy: parseInt(document.getElementById('foodEnergy').value),
+        gi: parseInt(document.getElementById('foodGI').value)
+      };
+      
+      const foodId = document.getElementById('foodId').value;
+      
+      try {
+        let response;
+        if (foodId) {
+          // Update existing food
+          response = await fetch(`/sfood/api/update/${foodId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(foodData)
+          });
+        } else {
+          // Create new food
+          response = await fetch('/sfood/api/create', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(foodData)
+          });
+        }
+        
+        if (response.ok) {
+          showMessage('Food saved successfully!', 'success');
+          clearForm();
+          // Reload foods
+          const foodsResponse = await fetch('/sfood/api/list');
+          foods = await foodsResponse.json();
+          foods = foods.filter(f => f.type === 'food');
+          renderFoodTable(foods);
+          updateCategories();
+        } else {
+          const error = await response.json();
+          showMessage('Error: ' + error.error, 'error');
+        }
+      } catch (err) {
+        showMessage('Error saving food: ' + err.message, 'error');
+      }
+    }
+    
+    // Delete food
+    async function deleteFood(id) {
+      if (!confirm('Are you sure you want to delete this food?')) return;
+      
+      try {
+        const response = await fetch(`/sfood/api/delete/${id}`, {
+          method: 'DELETE'
+        });
+        
+        if (response.ok) {
+          showMessage('Food deleted successfully!', 'success');
+          foods = foods.filter(f => f._id !== id);
+          renderFoodTable(foods);
+          updateCategories();
+        } else {
+          const error = await response.json();
+          showMessage('Error: ' + error.error, 'error');
+        }
+      } catch (err) {
+        showMessage('Error deleting food: ' + err.message, 'error');
+      }
+    }
+    
+    // Update categories after changes
+    function updateCategories() {
+      categories = {};
+      foods.forEach(f => {
+        if (f.category) {
+          if (!categories[f.category]) {
+            categories[f.category] = [];
+          }
+          if (f.subcategory && !categories[f.category].includes(f.subcategory)) {
+            categories[f.category].push(f.subcategory);
+          }
+        }
+      });
+      updateCategorySelects();
+    }
+    
+    // Render quick picks
+    function renderQuickPicks() {
+      const container = document.getElementById('quickPicksList');
+      const showHidden = document.getElementById('showHidden').checked;
+      
+      container.innerHTML = '';
+      
+      const visibleQuickpicks = showHidden ? quickpicks : quickpicks.filter(qp => !qp.hidden);
+      
+      visibleQuickpicks.forEach(qp => {
+        const totalCarbs = qp.foods ? qp.foods.reduce((sum, f) => sum + (f.carbs * (f.portions || 1)), 0) : 0;
+        
+        container.innerHTML += `
+          <div class="quickpick-item">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <strong>${qp.name || 'Unnamed Quick Pick'}</strong>
+                <span style="margin-left: 10px;">Total Carbs: ${totalCarbs.toFixed(1)}g</span>
+                ${qp.hidden ? '<span style="color: #666; margin-left: 10px;">(Hidden)</span>' : ''}
+                ${qp.hideafteruse ? '<span style="color: #666; margin-left: 10px;">(Hide after use)</span>' : ''}
+              </div>
+              <div>
+                <button class="btn btn-primary" onclick="editQuickPick('${qp._id}')">Edit</button>
+                <button class="btn btn-danger" onclick="deleteQuickPick('${qp._id}')">Delete</button>
+              </div>
+            </div>
+            ${qp.foods && qp.foods.length > 0 ? `
+              <div class="quickpick-foods">
+                ${qp.foods.map(f => `
+                  <div>${f.name} - ${f.portions || 1} portion(s) = ${(f.carbs * (f.portions || 1)).toFixed(1)}g carbs</div>
+                `).join('')}
+              </div>
+            ` : '<div class="quickpick-foods"><em>No foods added yet</em></div>'}
+          </div>
+        `;
+      });
+    }
+    
+    // Create quick pick
+    async function createQuickPick() {
+      const name = prompt('Enter quick pick name:');
+      if (!name) return;
+      
+      try {
+        const response = await fetch('/sfood/api/quickpick/create', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name })
+        });
+        
+        if (response.ok) {
+          const result = await response.json();
+          quickpicks.unshift(result.item);
+          renderQuickPicks();
+          showMessage('Quick pick created!', 'success');
+        } else {
+          const error = await response.json();
+          showMessage('Error: ' + error.error, 'error');
+        }
+      } catch (err) {
+        showMessage('Error creating quick pick: ' + err.message, 'error');
+      }
+    }
+    
+    // Edit quick pick (placeholder - would need more UI)
+    function editQuickPick(id) {
+      alert('Quick pick editing requires more advanced UI. Use the main Nightscout interface for full quick pick management.');
+    }
+    
+    // Delete quick pick
+    async function deleteQuickPick(id) {
+      if (!confirm('Are you sure you want to delete this quick pick?')) return;
+      
+      try {
+        const response = await fetch(`/sfood/api/delete/${id}`, {
+          method: 'DELETE'
+        });
+        
+        if (response.ok) {
+          showMessage('Quick pick deleted successfully!', 'success');
+          quickpicks = quickpicks.filter(qp => qp._id !== id);
+          renderQuickPicks();
+        } else {
+          const error = await response.json();
+          showMessage('Error: ' + error.error, 'error');
+        }
+      } catch (err) {
+        showMessage('Error deleting quick pick: ' + err.message, 'error');
+      }
+    }
+    
+    // Show message
+    function showMessage(text, type) {
+      const messageDiv = document.getElementById('message');
+      messageDiv.textContent = text;
+      messageDiv.className = 'message ' + type;
+      messageDiv.style.display = 'block';
+      
+      setTimeout(() => {
+        messageDiv.style.display = 'none';
+      }, 5000);
+    }
+  </script>
+</body>
+</html>
