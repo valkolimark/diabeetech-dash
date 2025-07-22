@@ -60,29 +60,44 @@ Located in `/lib/server/simple-clock.js`, this module:
 ```javascript
 // Route setup in app-multitenant.js
 const simpleClock = require('./simple-clock.js');
-app.use("/sclock", tenantResolver, auth.authenticate, tenantDataloader, simpleClock());
+app.use("/sclock", tenantResolver, tenantDataloader, simpleClock());
 
 // Clock module structure
-- GET /:face? - Display clock faces (requires authentication)
-- GET /config - Show configuration page (requires authentication)
-- POST /config - Save configuration (requires authentication)
+- GET /:face? - Display clock faces (requires web authentication)
+- GET /config - Show configuration page (requires web authentication)
+- POST /config - Save configuration (requires web authentication)
 ```
 
 ### Security
-**IMPORTANT**: All clock routes require authentication. The `auth.authenticate` middleware ensures:
-- Valid JWT token or API secret is provided
-- User belongs to the requested tenant
-- Unauthorized access returns 401 error
+**IMPORTANT**: Clock routes are protected by web-based authentication:
+- Uses cookie-based authentication (nightscout_token)
+- Same authentication as the main dashboard
+- Users must be logged into the web UI to access clocks
+- No API JWT tokens required (unlike API endpoints)
 
-Without authentication, glucose data would be exposed to anyone who knows the tenant name.
+The authentication middleware at lines 232-263 in app-multitenant.js handles all web page authentication after the tenant resolver. This ensures glucose data is not exposed to unauthenticated users.
 
 ## Authentication & Security
 
-### Multi-Tenant Authentication
-- JWT tokens used for API access
+### Multi-Tenant Authentication Types
+
+#### Web Page Authentication (including clocks)
+- Uses cookie-based authentication (`nightscout_token`)
+- Checked by middleware at lines 232-263 in app-multitenant.js
+- Allows server-side rendering without API tokens
+- Same auth as main dashboard - if you can see the dashboard, you can see the clocks
+
+#### API Authentication
+- Uses JWT tokens in Authorization header
+- Required for all `/api/*` routes
+- Handled by `auth.authenticate` middleware
+- Used by devices, mobile apps, and external integrations
+
+### Security Principles
 - Each tenant has isolated data
 - API_SECRET is optional in multi-tenant mode
 - Tenant context ensures data isolation
+- Web pages and API endpoints use different auth mechanisms
 
 ### Clock Security
 - Clock views inherit tenant context from middleware
