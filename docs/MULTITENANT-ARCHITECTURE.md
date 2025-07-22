@@ -103,6 +103,47 @@ The clock routes have their own middleware chain and must explicitly include aut
 - Clock views inherit tenant context from middleware
 - No client-side API calls = no authentication issues
 - Direct database access only within server context
+- Protected by `requireWebAuth` middleware that enforces authentication
+
+### How Clock Authentication Works
+
+#### The Problem We Discovered
+1. Express middleware runs in order
+2. Routes with custom middleware chains (like `app.use("/sclock", tenantResolver, ...)`) create their own middleware stack
+3. These custom stacks bypass earlier middleware unless explicitly included
+4. The general auth middleware (lines 232-263) just calls `next()` for unauthenticated users
+5. This allowed unauthenticated access to clock routes!
+
+#### The Solution
+```javascript
+// Custom middleware that actually blocks access
+const requireWebAuth = (req, res, next) => {
+  if (req.cookies && req.cookies.nightscout_token) {
+    const token = req.cookies.nightscout_token;
+    try {
+      const decoded = auth.verifyToken(token);
+      req.user = decoded;
+      next();
+    } catch (err) {
+      // Invalid token, redirect to login
+      res.clearCookie('nightscout_token');
+      return res.redirect('/login?redirect=' + encodeURIComponent(req.originalUrl));
+    }
+  } else {
+    // No auth, redirect to login
+    return res.redirect('/login?redirect=' + encodeURIComponent(req.originalUrl));
+  }
+};
+
+// Applied to clock routes
+app.use("/sclock", tenantResolver, requireWebAuth, tenantDataloader, simpleClock());
+```
+
+#### Key Points
+- Must explicitly include auth middleware in custom route chains
+- Use redirects for web pages, not just error responses
+- Preserve original URL for post-login redirect
+- Clear invalid cookies to prevent auth loops
 
 ## Key Files
 
