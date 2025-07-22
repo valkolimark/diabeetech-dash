@@ -69,13 +69,13 @@ app.use("/sclock", tenantResolver, tenantDataloader, simpleClock());
 ```
 
 ### Security
-**IMPORTANT**: Clock routes are protected by web-based authentication:
-- Uses cookie-based authentication (nightscout_token)
-- Same authentication as the main dashboard
-- Users must be logged into the web UI to access clocks
-- No API JWT tokens required (unlike API endpoints)
+**IMPORTANT**: Clock routes are protected by the `requireWebAuth` middleware:
+- Checks for valid `nightscout_token` cookie
+- Redirects to login page if not authenticated
+- Preserves original URL for redirect after login
+- Blocks all unauthenticated access (no client-side fallback)
 
-The authentication middleware at lines 232-263 in app-multitenant.js handles all web page authentication after the tenant resolver. This ensures glucose data is not exposed to unauthenticated users.
+The clock routes have their own middleware chain and must explicitly include authentication. The general auth middleware at lines 232-263 doesn't apply to routes with custom middleware chains.
 
 ## Authentication & Security
 
@@ -135,6 +135,11 @@ JWT_SECRET=<secure-secret>
 - `/clock/*` routes show authentication errors
 - These rely on client-side API calls that don't work in multi-tenant mode
 - **Solution**: Use `/sclock/*` routes instead
+
+### Authentication Middleware Order
+- Routes with custom middleware chains bypass the general auth middleware
+- Must explicitly include `requireWebAuth` middleware for protected routes
+- The general auth middleware only applies to routes using the default Express routing
 
 ## Future Improvements
 - Fix main dashboard glucose display
