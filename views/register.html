@@ -5,6 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Create Your Nightscout Account - Diabeetech</title>
   <link href="/css/main.css" rel="stylesheet" type="text/css">
+  <% if (captchaConfig && captchaConfig.enabled) { %>
+  <script src="https://js.hcaptcha.com/1/api.js" async defer></script>
+  <% } %>
   <style>
     body {
       font-family: 'Open Sans', Arial, sans-serif;
@@ -281,6 +284,12 @@
         By creating an account, you agree to our Terms of Service and Privacy Policy.
       </p>
       
+      <% if (captchaConfig && captchaConfig.enabled) { %>
+      <div class="form-group" style="margin: 20px 0;">
+        <div class="h-captcha" data-sitekey="<%= captchaConfig.siteKey %>"></div>
+      </div>
+      <% } %>
+      
       <button type="submit" class="submit-button" id="submitButton">
         Create My Nightscout Account
       </button>
@@ -298,9 +307,12 @@
   <script src="https://code.jquery.com/jquery-3.7.0.min.js" integrity="sha256-2Pmvv0kuTBOenSvLm6bvfBSSHrUJ+3A7x6P5Ebd07/g=" crossorigin="anonymous"></script>
   <script>
     $(document).ready(function() {
-      // Username preview
+      // Username preview and availability check
+      let checkTimer;
       $('#username').on('input', function() {
         const username = $(this).val().toLowerCase().replace(/[^a-z0-9-]/g, '');
+        
+        // Update preview
         if (username) {
           $('#usernamePreview').html(
             'Your Nightscout URL will be: <strong>https://' + username + '.diabeetech.net</strong>'
@@ -309,6 +321,22 @@
           $('#usernamePreview').html(
             'Your Nightscout URL will be: <strong>https://[username].diabeetech.net</strong>'
           );
+        }
+        
+        // Check availability after user stops typing
+        clearTimeout(checkTimer);
+        if (username && username.length >= 3) {
+          checkTimer = setTimeout(function() {
+            $.get('/api/register/check-username/' + username)
+              .done(function(data) {
+                if (data.available) {
+                  $('#usernamePreview').css('background', '#d4edda').css('color', '#155724');
+                } else {
+                  $('#usernamePreview').css('background', '#f8d7da').css('color', '#721c24')
+                    .append('<br><small>This username is already taken</small>');
+                }
+              });
+          }, 500);
         }
       });
       
@@ -373,6 +401,18 @@
             password: $('#carelinkPassword').val()
           };
         }
+        
+        <% if (captchaConfig && captchaConfig.enabled) { %>
+        // Add hCaptcha response
+        const captchaResponse = hcaptcha.getResponse();
+        if (!captchaResponse) {
+          $('#errorMessage').text('Please complete the captcha verification').show();
+          $('#submitButton').prop('disabled', false);
+          $('#loading').hide();
+          return;
+        }
+        formData['h-captcha-response'] = captchaResponse;
+        <% } %>
         
         $.ajax({
           url: '/api/register',
