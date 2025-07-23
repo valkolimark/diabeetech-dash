@@ -1,0 +1,988 @@
+{
+  "info": {
+    "name": "Nightscout Multi-Tenant API",
+    "description": "Comprehensive API collection for testing Nightscout Multi-Tenant diabetes management system. Includes authentication, glucose data management, treatments, profiles, and tenant management.",
+    "_postman_id": "nightscout-api-v3",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": "3.0.0"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{accessToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://demo.nightscout.com/api",
+      "type": "string"
+    },
+    {
+      "key": "accessToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "refreshToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "userId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "tenantId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "apiSecret",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Register User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('userId', response.user.id);",
+                  "    pm.test('User created successfully', () => {",
+                  "        pm.expect(response).to.have.property('message');",
+                  "        pm.expect(response.user).to.have.property('email');",
+                  "    });",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"SecurePassword123!\",\n  \"name\": \"Test User\",\n  \"role\": \"caregiver\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('accessToken', response.accessToken);",
+                  "    pm.collectionVariables.set('refreshToken', response.refreshToken);",
+                  "    pm.collectionVariables.set('userId', response.user.id);",
+                  "    pm.collectionVariables.set('tenantId', response.user.tenantId);",
+                  "    ",
+                  "    pm.test('Login successful', () => {",
+                  "        pm.expect(response).to.have.property('accessToken');",
+                  "        pm.expect(response).to.have.property('refreshToken');",
+                  "        pm.expect(response.tokenType).to.equal('Bearer');",
+                  "    });",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"SecurePassword123!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "Refresh Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('accessToken', response.accessToken);",
+                  "    pm.collectionVariables.set('refreshToken', response.refreshToken);",
+                  "    ",
+                  "    pm.test('Token refreshed successfully', () => {",
+                  "        pm.expect(response).to.have.property('accessToken');",
+                  "        pm.expect(response).to.have.property('refreshToken');",
+                  "    });",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/refresh",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "refresh"]
+            }
+          }
+        },
+        {
+          "name": "Get Profile",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/profile",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "profile"]
+            }
+          }
+        },
+        {
+          "name": "Update Profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated Name\",\n  \"settings\": {\n    \"units\": \"mg/dl\",\n    \"timeFormat\": 24\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/profile",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "profile"]
+            }
+          }
+        },
+        {
+          "name": "Change Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"currentPassword\": \"SecurePassword123!\",\n  \"newPassword\": \"NewSecurePassword123!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/change-password",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "change-password"]
+            }
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/logout",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "logout"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Glucose Entries",
+      "item": [
+        {
+          "name": "Get Recent Entries",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/entries?count=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "entries"],
+              "query": [
+                {
+                  "key": "count",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Entries by Date Range",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/entries?find[dateString][$gte]=2024-01-20T00:00:00.000Z&find[dateString][$lte]=2024-01-21T00:00:00.000Z&count=288",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "entries"],
+              "query": [
+                {
+                  "key": "find[dateString][$gte]",
+                  "value": "2024-01-20T00:00:00.000Z"
+                },
+                {
+                  "key": "find[dateString][$lte]",
+                  "value": "2024-01-21T00:00:00.000Z"
+                },
+                {
+                  "key": "count",
+                  "value": "288"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create CGM Entry",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"sgv\",\n  \"sgv\": 120,\n  \"direction\": \"Flat\",\n  \"device\": \"xDrip\",\n  \"dateString\": \"{{$isoTimestamp}}\",\n  \"noise\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/entries",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "entries"]
+            }
+          }
+        },
+        {
+          "name": "Create Manual BG Entry",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"mbg\",\n  \"mbg\": 135,\n  \"device\": \"Manual\",\n  \"dateString\": \"{{$isoTimestamp}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/entries",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "entries"]
+            }
+          }
+        },
+        {
+          "name": "Batch Upload Entries",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "[\n  {\n    \"type\": \"sgv\",\n    \"sgv\": 120,\n    \"direction\": \"Flat\",\n    \"device\": \"xDrip\",\n    \"dateString\": \"2024-01-20T10:00:00.000Z\"\n  },\n  {\n    \"type\": \"sgv\",\n    \"sgv\": 125,\n    \"direction\": \"FortyFiveUp\",\n    \"device\": \"xDrip\",\n    \"dateString\": \"2024-01-20T10:05:00.000Z\"\n  },\n  {\n    \"type\": \"sgv\",\n    \"sgv\": 130,\n    \"direction\": \"FortyFiveUp\",\n    \"device\": \"xDrip\",\n    \"dateString\": \"2024-01-20T10:10:00.000Z\"\n  }\n]"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/entries",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "entries"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Treatments",
+      "item": [
+        {
+          "name": "Get Recent Treatments",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/treatments?count=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "treatments"],
+              "query": [
+                {
+                  "key": "count",
+                  "value": "20"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Treatments by Type",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/treatments?find[eventType]=Meal Bolus&count=50",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "treatments"],
+              "query": [
+                {
+                  "key": "find[eventType]",
+                  "value": "Meal Bolus"
+                },
+                {
+                  "key": "count",
+                  "value": "50"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Meal Bolus",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"eventType\": \"Meal Bolus\",\n  \"carbs\": 45,\n  \"insulin\": 6.5,\n  \"created_at\": \"{{$isoTimestamp}}\",\n  \"notes\": \"Lunch - sandwich and fruit\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/treatments",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "treatments"]
+            }
+          }
+        },
+        {
+          "name": "Create Correction Bolus",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"eventType\": \"Correction Bolus\",\n  \"insulin\": 2.5,\n  \"glucose\": 180,\n  \"glucoseType\": \"Finger\",\n  \"units\": \"mg/dl\",\n  \"created_at\": \"{{$isoTimestamp}}\",\n  \"notes\": \"High BG correction\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/treatments",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "treatments"]
+            }
+          }
+        },
+        {
+          "name": "Create Temp Basal",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"eventType\": \"Temp Basal\",\n  \"duration\": 30,\n  \"percent\": -50,\n  \"created_at\": \"{{$isoTimestamp}}\",\n  \"notes\": \"Exercise - 50% reduction\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/treatments",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "treatments"]
+            }
+          }
+        },
+        {
+          "name": "Create Carb Entry",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"eventType\": \"Carbs\",\n  \"carbs\": 15,\n  \"created_at\": \"{{$isoTimestamp}}\",\n  \"notes\": \"Juice for low BG\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/treatments",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "treatments"]
+            }
+          }
+        },
+        {
+          "name": "Create Exercise Event",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"eventType\": \"Exercise\",\n  \"duration\": 45,\n  \"created_at\": \"{{$isoTimestamp}}\",\n  \"notes\": \"Morning run - moderate intensity\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/treatments",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "treatments"]
+            }
+          }
+        },
+        {
+          "name": "Create Site Change",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"eventType\": \"Site Change\",\n  \"created_at\": \"{{$isoTimestamp}}\",\n  \"notes\": \"Changed infusion set - left abdomen\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/treatments",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "treatments"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Profile",
+      "item": [
+        {
+          "name": "Get Current Profile",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/profile/current",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "profile", "current"]
+            }
+          }
+        },
+        {
+          "name": "Create/Update Profile",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"defaultProfile\": \"Default\",\n  \"store\": {\n    \"Default\": {\n      \"dia\": 4,\n      \"carbratio\": [\n        {\n          \"time\": \"00:00\",\n          \"value\": 10\n        },\n        {\n          \"time\": \"06:00\",\n          \"value\": 8\n        },\n        {\n          \"time\": \"12:00\",\n          \"value\": 10\n        },\n        {\n          \"time\": \"18:00\",\n          \"value\": 12\n        }\n      ],\n      \"sens\": [\n        {\n          \"time\": \"00:00\",\n          \"value\": 40\n        },\n        {\n          \"time\": \"06:00\",\n          \"value\": 35\n        }\n      ],\n      \"basal\": [\n        {\n          \"time\": \"00:00\",\n          \"value\": 0.8\n        },\n        {\n          \"time\": \"03:00\",\n          \"value\": 0.6\n        },\n        {\n          \"time\": \"06:00\",\n          \"value\": 0.9\n        },\n        {\n          \"time\": \"09:00\",\n          \"value\": 0.8\n        },\n        {\n          \"time\": \"12:00\",\n          \"value\": 0.7\n        },\n        {\n          \"time\": \"15:00\",\n          \"value\": 0.6\n        },\n        {\n          \"time\": \"18:00\",\n          \"value\": 0.8\n        },\n        {\n          \"time\": \"21:00\",\n          \"value\": 0.9\n        }\n      ],\n      \"target_low\": [\n        {\n          \"time\": \"00:00\",\n          \"value\": 80\n        }\n      ],\n      \"target_high\": [\n        {\n          \"time\": \"00:00\",\n          \"value\": 120\n        }\n      ],\n      \"units\": \"mg/dl\",\n      \"timezone\": \"America/New_York\"\n    }\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/profile",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "profile"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Device Status",
+      "item": [
+        {
+          "name": "Get Recent Device Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/devicestatus?count=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "devicestatus"],
+              "query": [
+                {
+                  "key": "count",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Upload Pump Status",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"device\": \"openaps://raspberrypi\",\n  \"pump\": {\n    \"battery\": {\n      \"status\": \"normal\",\n      \"voltage\": 1.35\n    },\n    \"reservoir\": 142.6,\n    \"clock\": \"{{$isoTimestamp}}\"\n  },\n  \"openaps\": {\n    \"iob\": {\n      \"iob\": 2.35,\n      \"activity\": 0.0456,\n      \"basaliob\": 0.234\n    },\n    \"suggested\": {\n      \"bg\": 145,\n      \"temp\": \"absolute\",\n      \"rate\": 1.2,\n      \"duration\": 30,\n      \"reason\": \"BG 145 > target 120\"\n    },\n    \"enacted\": {\n      \"bg\": 145,\n      \"temp\": \"absolute\",\n      \"rate\": 1.2,\n      \"duration\": 30,\n      \"recieved\": true\n    }\n  },\n  \"uploader\": {\n    \"battery\": 85\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/devicestatus",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "devicestatus"]
+            }
+          }
+        },
+        {
+          "name": "Upload Loop Status",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"device\": \"loop://iPhone\",\n  \"loop\": {\n    \"iob\": {\n      \"iob\": 1.5,\n      \"timestamp\": \"{{$isoTimestamp}}\"\n    },\n    \"cob\": {\n      \"cob\": 25,\n      \"timestamp\": \"{{$isoTimestamp}}\"\n    },\n    \"predicted\": {\n      \"startDate\": \"{{$isoTimestamp}}\",\n      \"values\": [145, 142, 138, 135, 132, 128, 125, 122, 120, 118]\n    },\n    \"recommendedBolus\": 0.5,\n    \"lastLoopCompleted\": \"{{$isoTimestamp}}\"\n  },\n  \"uploader\": {\n    \"battery\": 92\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/devicestatus",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "devicestatus"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Food Database",
+      "item": [
+        {
+          "name": "Search Food",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/food?find=pizza",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "food"],
+              "query": [
+                {
+                  "key": "find",
+                  "value": "pizza"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Food by Category",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/food?category=Breakfast",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "food"],
+              "query": [
+                {
+                  "key": "category",
+                  "value": "Breakfast"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Add Food Entry",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Pepperoni Pizza Slice\",\n  \"category\": \"Dinner\",\n  \"subcategory\": \"Italian\",\n  \"carbs\": 30,\n  \"unit\": \"slice\",\n  \"notes\": \"Thin crust from local pizzeria\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/food",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "food"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Multi-Tenant",
+      "item": [
+        {
+          "name": "Register Tenant",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    pm.test('Tenant registered successfully', () => {",
+                  "        pm.expect(response).to.have.property('message');",
+                  "        pm.expect(response.tenant).to.have.property('subdomain');",
+                  "        pm.expect(response).to.have.property('loginUrl');",
+                  "    });",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"subdomain\": \"my-clinic\",\n  \"adminEmail\": \"admin@clinic.com\",\n  \"adminPassword\": \"AdminPassword123!\",\n  \"adminName\": \"Clinic Admin\",\n  \"hCaptchaResponse\": \"captcha-token-here\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/tenants/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["tenants", "register"]
+            }
+          }
+        },
+        {
+          "name": "Get Current Tenant",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/tenants/current",
+              "host": ["{{baseUrl}}"],
+              "path": ["tenants", "current"]
+            }
+          }
+        },
+        {
+          "name": "Update Tenant Settings",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"settings\": {\n    \"units\": \"mmol/l\",\n    \"timeFormat\": 24,\n    \"language\": \"en\",\n    \"targetRange\": {\n      \"low\": 4.4,\n      \"high\": 7.0\n    }\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/tenants/current",
+              "host": ["{{baseUrl}}"],
+              "path": ["tenants", "current"]
+            }
+          }
+        },
+        {
+          "name": "List Tenant Users",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/tenants/users",
+              "host": ["{{baseUrl}}"],
+              "path": ["tenants", "users"]
+            }
+          }
+        },
+        {
+          "name": "Create Tenant User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"newuser@example.com\",\n  \"name\": \"New User\",\n  \"role\": \"caregiver\",\n  \"password\": \"InitialPassword123!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/tenants/users",
+              "host": ["{{baseUrl}}"],
+              "path": ["tenants", "users"]
+            }
+          }
+        },
+        {
+          "name": "Update Tenant User",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated User Name\",\n  \"role\": \"viewer\",\n  \"isActive\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/tenants/users/{{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["tenants", "users", "{{userId}}"]
+            }
+          }
+        },
+        {
+          "name": "Deactivate Tenant User",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/tenants/users/{{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["tenants", "users", "{{userId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Legacy API_SECRET Auth",
+      "item": [
+        {
+          "name": "Get Entries with API Secret",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "api-secret",
+                "value": "{{apiSecret}}",
+                "description": "SHA-1 hashed API secret"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/entries?count=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "entries"],
+              "query": [
+                {
+                  "key": "count",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Entry with API Secret Query",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"sgv\",\n  \"sgv\": 140,\n  \"direction\": \"FortyFiveUp\",\n  \"device\": \"legacy-uploader\",\n  \"dateString\": \"{{$isoTimestamp}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/entries?secret={{apiSecret}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "entries"],
+              "query": [
+                {
+                  "key": "secret",
+                  "value": "{{apiSecret}}"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "System Status",
+      "item": [
+        {
+          "name": "Get API Status",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "status"]
+            }
+          }
+        },
+        {
+          "name": "Get API Version",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v3/version",
+              "host": ["{{baseUrl}}"],
+              "path": ["v3", "version"]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Add timestamp for requests",
+          "pm.variables.set('timestamp', new Date().toISOString());",
+          "",
+          "// Helper to generate SHA-1 hash for API secret",
+          "if (pm.variables.get('apiSecretRaw')) {",
+          "    const CryptoJS = require('crypto-js');",
+          "    const hashedSecret = CryptoJS.SHA1(pm.variables.get('apiSecretRaw')).toString();",
+          "    pm.collectionVariables.set('apiSecret', hashedSecret);",
+          "}"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Global tests",
+          "pm.test('Response time is less than 1000ms', () => {",
+          "    pm.expect(pm.response.responseTime).to.be.below(1000);",
+          "});",
+          "",
+          "// Check for common errors",
+          "if (pm.response.code === 401) {",
+          "    console.log('Authentication failed - check your access token');",
+          "}",
+          "",
+          "if (pm.response.code === 429) {",
+          "    console.log('Rate limit exceeded - wait before retrying');",
+          "}"
+        ]
+      }
+    }
+  ]
+}

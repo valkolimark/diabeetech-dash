@@ -1,0 +1,1318 @@
+openapi: 3.0.3
+info:
+  title: Nightscout Multi-Tenant API
+  description: |
+    The Nightscout Multi-Tenant API provides comprehensive access to diabetes management data including 
+    continuous glucose monitoring (CGM) readings, treatments, device status, and user profiles. 
+    This API supports both modern JWT-based authentication for multi-tenant deployments and 
+    legacy API_SECRET authentication for backwards compatibility.
+  version: 3.0.0
+  contact:
+    name: Nightscout Project
+    url: https://github.com/nightscout/cgm-remote-monitor
+  license:
+    name: AGPL-3.0
+    url: https://www.gnu.org/licenses/agpl-3.0.html
+
+servers:
+  - url: https://{subdomain}.nightscout.com/api
+    description: Multi-tenant production server
+    variables:
+      subdomain:
+        default: demo
+        description: Tenant subdomain
+  - url: https://your-nightscout-instance.com/api
+    description: Single-tenant deployment
+  - url: http://localhost:1337/api
+    description: Local development server
+
+security:
+  - bearerAuth: []
+  - apiSecret: []
+
+tags:
+  - name: Authentication
+    description: User authentication and token management
+  - name: Entries
+    description: CGM glucose data management
+  - name: Treatments
+    description: Diabetes treatments (insulin, carbs, etc.)
+  - name: Profile
+    description: Diabetes management profiles
+  - name: Device Status
+    description: Device and uploader status
+  - name: Food
+    description: Food database management
+  - name: Tenants
+    description: Multi-tenant management
+  - name: Users
+    description: User management within tenants
+
+paths:
+  /auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: User login
+      description: Authenticate user and receive JWT tokens
+      operationId: login
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: user@example.com
+                password:
+                  type: string
+                  format: password
+                  example: secure-password
+      responses:
+        '200':
+          description: Successful authentication
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
+  /auth/register:
+    post:
+      tags:
+        - Authentication
+      summary: Register new user
+      description: Create a new user account
+      operationId: register
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+                - name
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  format: password
+                  minLength: 8
+                name:
+                  type: string
+                  minLength: 2
+                role:
+                  type: string
+                  enum: [viewer, caregiver, admin]
+                  default: viewer
+      responses:
+        '201':
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  user:
+                    $ref: '#/components/schemas/User'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /auth/refresh:
+    post:
+      tags:
+        - Authentication
+      summary: Refresh access token
+      description: Exchange refresh token for new access token
+      operationId: refreshToken
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - refreshToken
+              properties:
+                refreshToken:
+                  type: string
+                  description: Valid refresh token
+      responses:
+        '200':
+          description: Token refreshed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /auth/logout:
+    post:
+      tags:
+        - Authentication
+      summary: User logout
+      description: Invalidate current session
+      operationId: logout
+      responses:
+        '200':
+          description: Logout successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Logged out successfully
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /v1/entries:
+    get:
+      tags:
+        - Entries
+      summary: List glucose entries
+      description: Retrieve CGM glucose readings with optional filters
+      operationId: getEntries
+      parameters:
+        - name: count
+          in: query
+          description: Number of entries to return
+          schema:
+            type: integer
+            default: 10
+            minimum: 1
+            maximum: 1000
+        - name: find[dateString][$gte]
+          in: query
+          description: Start date filter (ISO 8601)
+          schema:
+            type: string
+            format: date-time
+        - name: find[dateString][$lte]
+          in: query
+          description: End date filter (ISO 8601)
+          schema:
+            type: string
+            format: date-time
+        - name: find[type]
+          in: query
+          description: Entry type filter
+          schema:
+            type: string
+            enum: [sgv, mbg, cal]
+      responses:
+        '200':
+          description: List of glucose entries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Entry'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
+    post:
+      tags:
+        - Entries
+      summary: Create glucose entry
+      description: Submit new CGM or blood glucose reading
+      operationId: createEntry
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EntryInput'
+      responses:
+        '201':
+          description: Entry created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Entry'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+
+  /v1/entries/{id}:
+    get:
+      tags:
+        - Entries
+      summary: Get entry by ID
+      description: Retrieve a specific glucose entry
+      operationId: getEntryById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Glucose entry details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Entry'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    put:
+      tags:
+        - Entries
+      summary: Update entry
+      description: Update an existing glucose entry
+      operationId: updateEntry
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EntryInput'
+      responses:
+        '200':
+          description: Entry updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Entry'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      tags:
+        - Entries
+      summary: Delete entry
+      description: Remove a glucose entry
+      operationId: deleteEntry
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Entry deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entry deleted successfully
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /v1/treatments:
+    get:
+      tags:
+        - Treatments
+      summary: List treatments
+      description: Retrieve diabetes treatments with optional filters
+      operationId: getTreatments
+      parameters:
+        - name: count
+          in: query
+          description: Number of treatments to return
+          schema:
+            type: integer
+            default: 10
+            minimum: 1
+            maximum: 1000
+        - name: find[eventType]
+          in: query
+          description: Filter by event type
+          schema:
+            type: string
+            enum: 
+              - Meal Bolus
+              - Correction Bolus
+              - Combo Bolus
+              - Temp Basal
+              - Carbs
+              - Exercise
+              - Site Change
+              - Sensor Change
+              - Note
+        - name: find[created_at][$gte]
+          in: query
+          description: Start date filter
+          schema:
+            type: string
+            format: date-time
+        - name: find[created_at][$lte]
+          in: query
+          description: End date filter
+          schema:
+            type: string
+            format: date-time
+      responses:
+        '200':
+          description: List of treatments
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Treatment'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    post:
+      tags:
+        - Treatments
+      summary: Create treatment
+      description: Log a new diabetes treatment
+      operationId: createTreatment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TreatmentInput'
+      responses:
+        '201':
+          description: Treatment created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Treatment'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /v1/profile/current:
+    get:
+      tags:
+        - Profile
+      summary: Get current profile
+      description: Retrieve the active diabetes management profile
+      operationId: getCurrentProfile
+      responses:
+        '200':
+          description: Current profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Profile'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /v1/profile:
+    post:
+      tags:
+        - Profile
+      summary: Create or update profile
+      description: Set diabetes management profile settings
+      operationId: createProfile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProfileInput'
+      responses:
+        '201':
+          description: Profile created/updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Profile'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /v1/devicestatus:
+    get:
+      tags:
+        - Device Status
+      summary: List device status
+      description: Retrieve device and uploader status information
+      operationId: getDeviceStatus
+      parameters:
+        - name: count
+          in: query
+          description: Number of records to return
+          schema:
+            type: integer
+            default: 10
+        - name: find[created_at][$gte]
+          in: query
+          description: Start date filter
+          schema:
+            type: string
+            format: date-time
+      responses:
+        '200':
+          description: List of device status records
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DeviceStatus'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    post:
+      tags:
+        - Device Status
+      summary: Upload device status
+      description: Submit device, pump, and uploader status
+      operationId: createDeviceStatus
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeviceStatusInput'
+      responses:
+        '201':
+          description: Device status uploaded successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeviceStatus'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /v1/food:
+    get:
+      tags:
+        - Food
+      summary: Search food database
+      description: Search custom food entries
+      operationId: searchFood
+      parameters:
+        - name: find
+          in: query
+          description: Search term
+          schema:
+            type: string
+        - name: category
+          in: query
+          description: Filter by category
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of food entries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Food'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    post:
+      tags:
+        - Food
+      summary: Add food entry
+      description: Create a custom food entry
+      operationId: createFood
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FoodInput'
+      responses:
+        '201':
+          description: Food entry created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Food'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /tenants/register:
+    post:
+      tags:
+        - Tenants
+      summary: Register new tenant
+      description: Create a new tenant organization
+      operationId: registerTenant
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - subdomain
+                - adminEmail
+                - adminPassword
+                - adminName
+              properties:
+                subdomain:
+                  type: string
+                  pattern: '^[a-z0-9-]+$'
+                  minLength: 3
+                  maxLength: 63
+                adminEmail:
+                  type: string
+                  format: email
+                adminPassword:
+                  type: string
+                  format: password
+                  minLength: 8
+                adminName:
+                  type: string
+                  minLength: 2
+                hCaptchaResponse:
+                  type: string
+                  description: hCaptcha verification token
+      responses:
+        '201':
+          description: Tenant registered successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  tenant:
+                    $ref: '#/components/schemas/Tenant'
+                  loginUrl:
+                    type: string
+                    format: uri
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /tenants/current:
+    get:
+      tags:
+        - Tenants
+      summary: Get current tenant
+      description: Retrieve information about the current tenant
+      operationId: getCurrentTenant
+      responses:
+        '200':
+          description: Current tenant information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Tenant'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    put:
+      tags:
+        - Tenants
+      summary: Update tenant settings
+      description: Update current tenant configuration (admin only)
+      operationId: updateTenant
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                settings:
+                  type: object
+                  properties:
+                    units:
+                      type: string
+                      enum: [mg/dl, mmol/l]
+                    timeFormat:
+                      type: integer
+                      enum: [12, 24]
+                    language:
+                      type: string
+      responses:
+        '200':
+          description: Tenant updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Tenant'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /tenants/users:
+    get:
+      tags:
+        - Users
+      summary: List tenant users
+      description: Retrieve all users in the current tenant (admin only)
+      operationId: getTenantUsers
+      responses:
+        '200':
+          description: List of tenant users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+    post:
+      tags:
+        - Users
+      summary: Create tenant user
+      description: Add a new user to the tenant (admin only)
+      operationId: createTenantUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - name
+                - role
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                name:
+                  type: string
+                role:
+                  type: string
+                  enum: [viewer, caregiver, admin]
+                password:
+                  type: string
+                  format: password
+                  minLength: 8
+      responses:
+        '201':
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /tenants/users/{userId}:
+    put:
+      tags:
+        - Users
+      summary: Update tenant user
+      description: Update user information (admin only)
+      operationId: updateTenantUser
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                role:
+                  type: string
+                  enum: [viewer, caregiver, admin]
+                isActive:
+                  type: boolean
+      responses:
+        '200':
+          description: User updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      tags:
+        - Users
+      summary: Deactivate tenant user
+      description: Deactivate a user account (admin only)
+      operationId: deactivateTenantUser
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: User deactivated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: User deactivated successfully
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT authentication token
+    apiSecret:
+      type: apiKey
+      in: header
+      name: api-secret
+      description: SHA-1 hashed API secret
+
+  schemas:
+    AuthResponse:
+      type: object
+      properties:
+        accessToken:
+          type: string
+          description: JWT access token
+        refreshToken:
+          type: string
+          description: JWT refresh token
+        tokenType:
+          type: string
+          example: Bearer
+        expiresIn:
+          type: integer
+          description: Token expiration time in seconds
+          example: 86400
+        user:
+          $ref: '#/components/schemas/User'
+
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+        email:
+          type: string
+          format: email
+        name:
+          type: string
+        role:
+          type: string
+          enum: [viewer, caregiver, admin]
+        tenantId:
+          type: string
+        isActive:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    Tenant:
+      type: object
+      properties:
+        id:
+          type: string
+        subdomain:
+          type: string
+        isActive:
+          type: boolean
+        settings:
+          type: object
+          properties:
+            units:
+              type: string
+              enum: [mg/dl, mmol/l]
+            timeFormat:
+              type: integer
+              enum: [12, 24]
+            language:
+              type: string
+        createdAt:
+          type: string
+          format: date-time
+
+    Entry:
+      type: object
+      properties:
+        _id:
+          type: string
+        type:
+          type: string
+          enum: [sgv, mbg, cal]
+        sgv:
+          type: number
+          description: Sensor glucose value in mg/dL
+        mbg:
+          type: number
+          description: Meter blood glucose in mg/dL
+        direction:
+          type: string
+          enum: [NONE, DoubleUp, SingleUp, FortyFiveUp, Flat, FortyFiveDown, SingleDown, DoubleDown]
+        device:
+          type: string
+        dateString:
+          type: string
+          format: date-time
+        date:
+          type: number
+          description: Unix timestamp in milliseconds
+        mills:
+          type: number
+          description: Unix timestamp in milliseconds
+        noise:
+          type: integer
+          minimum: 1
+          maximum: 4
+        rssi:
+          type: integer
+
+    EntryInput:
+      type: object
+      required:
+        - type
+        - dateString
+      properties:
+        type:
+          type: string
+          enum: [sgv, mbg, cal]
+        sgv:
+          type: number
+          minimum: 0
+          maximum: 1000
+        mbg:
+          type: number
+          minimum: 0
+          maximum: 1000
+        direction:
+          type: string
+          enum: [NONE, DoubleUp, SingleUp, FortyFiveUp, Flat, FortyFiveDown, SingleDown, DoubleDown]
+        device:
+          type: string
+        dateString:
+          type: string
+          format: date-time
+        noise:
+          type: integer
+          minimum: 1
+          maximum: 4
+
+    Treatment:
+      type: object
+      properties:
+        _id:
+          type: string
+        eventType:
+          type: string
+        insulin:
+          type: number
+        carbs:
+          type: number
+        glucose:
+          type: number
+        glucoseType:
+          type: string
+          enum: [Sensor, Finger]
+        units:
+          type: string
+          enum: [mg/dl, mmol/l]
+        duration:
+          type: number
+          description: Duration in minutes
+        percent:
+          type: number
+          minimum: -100
+          maximum: 100
+        absolute:
+          type: number
+        notes:
+          type: string
+        enteredBy:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+
+    TreatmentInput:
+      type: object
+      required:
+        - eventType
+        - created_at
+      properties:
+        eventType:
+          type: string
+          enum: 
+            - Meal Bolus
+            - Correction Bolus
+            - Combo Bolus
+            - Temp Basal
+            - Carbs
+            - Exercise
+            - Site Change
+            - Sensor Change
+            - Note
+            - Announcement
+        insulin:
+          type: number
+          minimum: 0
+        carbs:
+          type: number
+          minimum: 0
+        glucose:
+          type: number
+          minimum: 0
+        glucoseType:
+          type: string
+          enum: [Sensor, Finger]
+        units:
+          type: string
+          enum: [mg/dl, mmol/l]
+        duration:
+          type: number
+          minimum: 0
+        percent:
+          type: number
+          minimum: -100
+          maximum: 100
+        absolute:
+          type: number
+          minimum: 0
+        notes:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+
+    Profile:
+      type: object
+      properties:
+        _id:
+          type: string
+        defaultProfile:
+          type: string
+        mills:
+          type: number
+        created_at:
+          type: string
+          format: date-time
+        store:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/ProfileSettings'
+
+    ProfileSettings:
+      type: object
+      properties:
+        dia:
+          type: number
+          description: Duration of insulin action in hours
+        carbratio:
+          type: array
+          items:
+            $ref: '#/components/schemas/TimeValue'
+        sens:
+          type: array
+          items:
+            $ref: '#/components/schemas/TimeValue'
+        basal:
+          type: array
+          items:
+            $ref: '#/components/schemas/TimeValue'
+        target_low:
+          type: array
+          items:
+            $ref: '#/components/schemas/TimeValue'
+        target_high:
+          type: array
+          items:
+            $ref: '#/components/schemas/TimeValue'
+        units:
+          type: string
+          enum: [mg/dl, mmol/l]
+        timezone:
+          type: string
+
+    ProfileInput:
+      type: object
+      required:
+        - defaultProfile
+        - store
+      properties:
+        defaultProfile:
+          type: string
+        store:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/ProfileSettings'
+
+    TimeValue:
+      type: object
+      required:
+        - time
+        - value
+      properties:
+        time:
+          type: string
+          pattern: '^([01]?[0-9]|2[0-3]):[0-5][0-9]$'
+          example: "08:00"
+        value:
+          type: number
+        timeAsSeconds:
+          type: integer
+
+    DeviceStatus:
+      type: object
+      properties:
+        _id:
+          type: string
+        device:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        pump:
+          type: object
+          properties:
+            battery:
+              type: object
+              properties:
+                status:
+                  type: string
+                voltage:
+                  type: number
+            reservoir:
+              type: number
+            clock:
+              type: string
+              format: date-time
+        openaps:
+          type: object
+          properties:
+            iob:
+              type: object
+              properties:
+                iob:
+                  type: number
+                activity:
+                  type: number
+                basaliob:
+                  type: number
+            suggested:
+              type: object
+        uploader:
+          type: object
+          properties:
+            battery:
+              type: integer
+
+    DeviceStatusInput:
+      type: object
+      required:
+        - device
+      properties:
+        device:
+          type: string
+        pump:
+          type: object
+        openaps:
+          type: object
+        uploader:
+          type: object
+
+    Food:
+      type: object
+      properties:
+        _id:
+          type: string
+        name:
+          type: string
+        category:
+          type: string
+        subcategory:
+          type: string
+        carbs:
+          type: number
+        unit:
+          type: string
+        notes:
+          type: string
+
+    FoodInput:
+      type: object
+      required:
+        - name
+        - carbs
+      properties:
+        name:
+          type: string
+        category:
+          type: string
+        subcategory:
+          type: string
+        carbs:
+          type: number
+          minimum: 0
+        unit:
+          type: string
+        notes:
+          type: string
+
+    Error:
+      type: object
+      properties:
+        status:
+          type: integer
+        result:
+          type: string
+          example: error
+        message:
+          type: string
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              field:
+                type: string
+              message:
+                type: string
+
+  responses:
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    Forbidden:
+      description: Forbidden
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    NotFound:
+      description: Not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    Conflict:
+      description: Conflict
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    UnprocessableEntity:
+      description: Unprocessable entity
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    TooManyRequests:
+      description: Too many requests
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/Error'
+              - type: object
+                properties:
+                  retryAfter:
+                    type: integer
+                    description: Seconds to wait before retry
