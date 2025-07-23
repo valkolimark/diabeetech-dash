@@ -1,0 +1,45 @@
+# Heroku slug ignore file
+# Reduces deployment size by excluding unnecessary files
+
+# Admin dashboard source (keep only built files)
+admin-dashboard/node_modules
+admin-dashboard/src
+admin-dashboard/*.md
+admin-dashboard/.gitignore
+
+# Documentation
+*.md
+docs/
+ROLLBACK-PROCEDURE.md
+ADMIN-DASHBOARD-DEPLOYMENT.md
+LOCAL-SETUP-INSTRUCTIONS.md
+
+# Development files
+admin-server*.js
+test-*.js
+*.test.js
+
+# Backup scripts (won't work on Heroku)
+scripts/backup-database.js
+scripts/rollback.sh
+backups/
+
+# Git files
+.git/
+.gitignore
+
+# Test files
+tests/
+test/
+spec/
+
+# Local environment
+.env.local
+.env.development
+.env.feature-flags
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo

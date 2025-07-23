@@ -5,7 +5,7 @@ This is a multi-tenant Nightscout instance deployed on Heroku that allows multip
 
 ## Current Status
 - **API Authentication**: ✅ Working - devices can upload/retrieve glucose data
-- **JWT Web Login**: ⚠️ Returns 500 error - needs debugging
+- **JWT Web Login**: ✅ Working - users can login via API
 - **Tenant Registration**: ✅ Working
 - **Data Isolation**: ✅ Each tenant has separate database
 - **Dexcom Bridge**: ✅ Working and pulling data
@@ -127,18 +127,15 @@ heroku run "MONGODB_URI=$MASTER_MONGODB_URI node scripts/script.js" -a btech
 
 ## Known Issues
 
-### JWT Login Returns 500
-**Endpoint**: POST /api/auth/login
-**Investigation**:
-- User exists and password is correct
-- JWT can be generated successfully
-- Issue appears to be with database context in multi-tenant mode
-- The user model may not be using the correct database connection
+### JWT Login JSON Formatting
+**Resolved**: The JWT login was failing due to incorrect JSON escaping in curl commands.
+**Solution**: Use proper JSON formatting without escaping special characters in passwords.
 
-**Debug with**:
+**Working example**:
 ```bash
-heroku run node scripts/debug-login.js -a btech
-heroku logs --tail -a btech | grep -E "api/auth/login|500|error"
+curl -X POST https://onepanman.diabeetech.net/api/auth/login \
+    -H "Content-Type: application/json" \
+    -d '{"email": "mark@markmireles.com", "password": "GodIsGood23!"}'
 ```
 
 ## Common Commands
@@ -174,7 +171,7 @@ MongoClient.connect(process.env.MONGODB_URI, { useUnifiedTopology: true }, async
 curl -X GET "https://onepanman.diabeetech.net/api/v1/entries?count=1" \
     -H "api-secret: 51a26cb40dcca4fd97601d00f8253129091c06ca"
 
-# Test JWT login (currently failing with 500)
+# Test JWT login (working)
 curl -X POST https://onepanman.diabeetech.net/api/auth/login \
     -H "Content-Type: application/json" \
     -d '{"email": "mark@markmireles.com", "password": "GodIsGood23!"}'
@@ -196,16 +193,15 @@ curl -X POST https://onepanman.diabeetech.net/api/auth/login \
 
 ## Next Session Tasks
 
-1. **Fix JWT Login** - Debug why auth.login returns 500 error
-   - Add better error logging to auth middleware
-   - Check if ctx.store is properly initialized for auth routes
-   - Verify user model database connection in multi-tenant mode
+1. **Complete Documentation** - Update README with multi-tenant setup
 
-2. **Complete Documentation** - Update README with multi-tenant setup
+2. **Add Admin Features** - Tenant management UI
 
-3. **Add Admin Features** - Tenant management UI
+3. **Security Hardening** - Rate limiting, audit logs
 
-4. **Security Hardening** - Rate limiting, audit logs
+4. **Add Web UI Login** - Implement login form for web interface
+   - Currently only API login is tested
+   - Need to add login/logout UI components
 
 ## Important Notes
 
