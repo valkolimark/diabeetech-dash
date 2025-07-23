@@ -3,7 +3,7 @@
 
 # Admin dashboard source (keep only built files)
 admin-dashboard/node_modules
-admin-dashboard/src
+# admin-dashboard/src  # Need src for build
 admin-dashboard/*.md
 admin-dashboard/.gitignore
 
