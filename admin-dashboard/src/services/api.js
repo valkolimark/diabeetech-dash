@@ -59,6 +59,12 @@ export const adminApi = {
   getOverview: () => api.get('/overview'),
   getFeatures: () => api.get('/features'),
   
+  // Dashboard
+  getDashboardStats: () => api.get('/dashboard/stats'),
+  getDashboardActivity: (params) => api.get('/dashboard/activity', { params }),
+  getDashboardCharts: (params) => api.get('/dashboard/charts', { params }),
+  getDashboardAlerts: () => api.get('/dashboard/alerts'),
+  
   // Tenants
   getTenants: (params) => api.get('/tenants', { params }),
   getTenant: (id) => api.get(`/tenants/${id}`),
@@ -67,6 +73,12 @@ export const adminApi = {
   deleteTenant: (id) => api.delete(`/tenants/${id}?confirm=true`),
   suspendTenant: (id, reason) => api.post(`/tenants/${id}/suspend`, { reason }),
   activateTenant: (id) => api.post(`/tenants/${id}/activate`),
+  getTenantUsers: (id, params) => api.get(`/tenants/${id}/users`, { params }),
+  getTenantStats: (id, params) => api.get(`/tenants/${id}/stats`, { params }),
+  getTenantActivity: (id, params) => api.get(`/tenants/${id}/activity`, { params }),
+  checkSubdomain: (subdomain) => api.post('/tenants/check-subdomain', { subdomain }),
+  bulkTenantOperation: (action, tenantIds, data) => api.post('/tenants/bulk', { action, tenantIds, data }),
+  exportTenants: (params) => api.get('/tenants/export', { params }),
   
   // Users
   getUsers: (params) => api.get('/users', { params }),
