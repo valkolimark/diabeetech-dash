@@ -48,38 +48,48 @@ When running `heroku run node scripts/add-tenant-api-secret.js --generate-random
 - Error: `TypeError: fs.readFileSync is not a function` in `/app/lib/language.js:150`
 - MongoDB connection fails with "URI malformed" error
 
-## What Needs to Be Fixed
+## What Was Fixed
 
-### 1. Debug the Language Module Issue
-The language module is failing with `fs.readFileSync is not a function`. This is blocking all scripts from running. Check:
-- Is fs being imported correctly?
-- Is there a webpack/build issue?
-- Are we in a restricted environment?
+### 1. ✅ Fixed Language Module Issue
+**Problem**: Migration scripts failed with `fs.readFileSync is not a function`
+**Root Cause**: The language module expects `fs` to be passed as a parameter, but scripts were passing `env` instead
+**Solution**: Updated migration scripts to properly require and pass the `fs` module:
+```javascript
+const fs = require('fs');
+const language = require('../lib/language')(fs);  // Was: require('../lib/language')(env)
+```
 
-### 2. Fix MongoDB Connection
-The MongoDB URI appears to be malformed or missing. Need to:
-- Check `heroku config:get MONGODB_URI -a btech`
-- Verify the connection string format
-- Ensure the database is accessible
+### 2. ✅ Fixed MongoDB Connection
+**Problem**: Scripts couldn't connect to MongoDB
+**Root Cause**: The environment variable is `MASTER_MONGODB_URI`, not `MONGODB_URI`
+**Solution**: Used the correct environment variable when running scripts:
+```bash
+heroku run "MONGODB_URI=$MASTER_MONGODB_URI node script.js" -a btech
+```
 
-### 3. Verify Authentication Middleware
-The API is returning 401 even after deployment. Need to:
-- Check if the authentication middleware is loading
-- Verify tenant resolution is working (subdomain → tenant lookup)
-- Ensure the legacy API_SECRET check is running
+### 3. ✅ Fixed API Authentication
+**Problem**: API returned 401 "No authentication token provided" even with correct API_SECRET
+**Root Cause**: The tenant's API_SECRET wasn't set in the database
+**Solution**: 
+1. Created and ran `quick-update-tenant.js` script to add API_SECRET to the tenant
+2. Updated the tenant with API_SECRET: `GodIsSoGood2Me23!`
+3. The SHA-1 hash is: `51a26cb40dcca4fd97601d00f8253129091c06ca`
 
-### 4. Debug JWT Login Error
-The 500 error on login suggests a deeper issue. Check:
-- Database connectivity for user lookups
-- JWT secret configuration
-- Error logs for the actual error message
+### 4. ⚠️ JWT Login Still Has Issues
+**Problem**: `/api/auth/login` returns 500 error
+**Investigation**: Created debug script that confirmed:
+- User exists in database
+- Password verification works
+- JWT can be generated successfully
+**Likely Cause**: The user model initialization in multi-tenant mode may not be using the correct database context
+**Status**: API authentication works, but web UI login needs further debugging
 
 ## Credentials & Test Data
 
 ### Tenant: onepanman
 - **Subdomain**: onepanman.diabeetech.net
 - **API_SECRET**: `GodIsSoGood2Me23!`
-- **SHA-1 Hash**: `5a9baf88e82b6b171ed3e3a962ed7dc2c10eaad9`
+- **SHA-1 Hash**: `51a26cb40dcca4fd97601d00f8253129091c06ca`
 - **Admin User**: mark@markmireles.com
 - **Password**: GodIsGood23!
 
@@ -93,7 +103,7 @@ The 500 error on login suggests a deeper issue. Check:
 ```bash
 # Check if API_SECRET works (should return glucose entries)
 curl -X GET "https://onepanman.diabeetech.net/api/v1/entries?count=3" \
-    -H "api-secret: 5a9baf88e82b6b171ed3e3a962ed7dc2c10eaad9"
+    -H "api-secret: 51a26cb40dcca4fd97601d00f8253129091c06ca"
 
 # Test JWT login (should return access token)
 curl -X POST https://onepanman.diabeetech.net/api/auth/login \
@@ -107,11 +117,54 @@ heroku logs --tail -a btech
 heroku run node scripts/add-tenant-api-secret.js --subdomain=onepanman --secret="GodIsSoGood2Me23!" -a btech
 ```
 
+## Can You Pull Glucose Readings from Other Devices?
+
+**YES! The API is now working correctly.** You can pull glucose readings from any device or application that supports the Nightscout API.
+
+### How to Access the API:
+
+1. **Get Recent Glucose Entries:**
+```bash
+curl -X GET "https://onepanman.diabeetech.net/api/v1/entries?count=10" \
+    -H "api-secret: 51a26cb40dcca4fd97601d00f8253129091c06ca"
+```
+
+2. **Get Entries in a Time Range:**
+```bash
+# Get entries from the last hour
+curl -X GET "https://onepanman.diabeetech.net/api/v1/entries.json?find[date][\$gte]=$(date -u -v-1H +%s)000" \
+    -H "api-secret: 51a26cb40dcca4fd97601d00f8253129091c06ca"
+```
+
+3. **Upload New Entries (from CGM/Pump):**
+```bash
+curl -X POST "https://onepanman.diabeetech.net/api/v1/entries" \
+    -H "api-secret: 51a26cb40dcca4fd97601d00f8253129091c06ca" \
+    -H "Content-Type: application/json" \
+    -d '[{"sgv": 120, "date": 1753240000000, "dateString": "2025-07-23T03:00:00.000Z", "direction": "Flat", "type": "sgv", "device": "xDrip"}]'
+```
+
+### Compatible Apps/Devices:
+- **xDrip+**: Use the API_SECRET in Nightscout Sync settings
+- **Spike**: Configure with your subdomain and API_SECRET
+- **Loop**: Add as a Nightscout service with the API_SECRET
+- **AAPS**: Configure Nightscout upload with your URL and API_SECRET
+- **Dexcom Share Bridge**: Already configured and working (as shown in logs)
+- **Any app that supports Nightscout API v1**
+
+### API Endpoints Available:
+- `/api/v1/entries` - Glucose entries (BG values)
+- `/api/v1/treatments` - Insulin, carbs, temp basals
+- `/api/v1/devicestatus` - Pump and uploader status
+- `/api/v1/profile` - Basal rates, ISF, carb ratios
+- `/api/v1/food` - Food database
+- `/api/v1/activity` - Exercise entries
+
 ## Success Criteria
-1. API_SECRET authentication works for onepanman tenant
-2. JWT login endpoint returns tokens successfully
-3. Migration scripts can run to add API_SECRETs to all tenants
-4. New tenants automatically get API_SECRETs
+1. ✅ API_SECRET authentication works for onepanman tenant
+2. ⚠️ JWT login endpoint returns tokens successfully (still debugging)
+3. ✅ Migration scripts can run to add API_SECRETs to all tenants
+4. ✅ New tenants automatically get API_SECRETs (implemented in tenant model)
 
 ## Code Locations
 - Authentication middleware: `lib/middleware/auth.js:277-292`
