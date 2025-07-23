@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const authApi = axios.create({
-  baseURL: '/api/auth',
+  baseURL: '/api/v1/admin/auth',
   withCredentials: true,
 });
 
@@ -32,11 +32,11 @@ export const authService = {
   logout: async () => {
     try {
       await authApi.post('/logout');
-      window.location.href = '/login';
+      window.location.href = '/admin';
     } catch (error) {
       console.error('Logout failed:', error);
       // Force redirect anyway
-      window.location.href = '/login';
+      window.location.href = '/admin';
     }
   },
 

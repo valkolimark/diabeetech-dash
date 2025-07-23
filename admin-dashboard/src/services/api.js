@@ -33,7 +33,7 @@ api.interceptors.response.use(
       if (error.response.status === 401) {
         // Clear auth and redirect to login
         localStorage.removeItem('token');
-        window.location.href = '/login?redirect=/admin';
+        window.location.href = '/admin';
       }
       
       // Handle 403 Forbidden
