@@ -29,7 +29,7 @@ console.log('Loading Nightscout environment...');
 const env = require('../lib/server/env')();
 
 console.log('Initializing boot environment...');
-const language = require('../lib/language')(env);
+const language = require('../lib/language')(fs);
 const ctx = {
   store: null,
   bootErrors: []
