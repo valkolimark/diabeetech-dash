@@ -21,6 +21,10 @@ export const authService = {
   login: async (email, password) => {
     try {
       const response = await authApi.post('/login', { email, password });
+      // Store token in localStorage if provided
+      if (response.data.token) {
+        localStorage.setItem('token', response.data.token);
+      }
       return response.data;
     } catch (error) {
       console.error('Login failed:', error);
@@ -32,10 +36,12 @@ export const authService = {
   logout: async () => {
     try {
       await authApi.post('/logout');
+      localStorage.removeItem('token');
       window.location.href = '/admin';
     } catch (error) {
       console.error('Logout failed:', error);
       // Force redirect anyway
+      localStorage.removeItem('token');
       window.location.href = '/admin';
     }
   },
@@ -45,12 +51,19 @@ export const authService = {
     return user && user.role === 'superadmin';
   },
 
-  // Get auth token from cookie
+  // Get auth token from localStorage or cookie
   getToken: () => {
+    // First check localStorage
+    const localToken = localStorage.getItem('token');
+    if (localToken) {
+      return localToken;
+    }
+    
+    // Then check cookie
     const cookies = document.cookie.split(';');
     for (let cookie of cookies) {
       const [name, value] = cookie.trim().split('=');
-      if (name === 'token') {
+      if (name === 'admin_token' || name === 'token') {
         return value;
       }
     }
