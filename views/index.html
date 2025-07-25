@@ -754,9 +754,6 @@
     <audio src="audio/alarm2.mp3" preload="auto" loop="true" class="urgent alarm2 mp3" type="audio/mp3"></audio>
   </div>
 
-  <!-- Force cache update on new deployments -->
-  <script src="js/force-cache-update.js"></script>
-  
   <!-- Load jQuery first -->
   <script src="https://code.jquery.com/jquery-3.7.0.min.js" integrity="sha256-2Pmvv0kuTBOenSvLm6bvfBSSHrUJ+3A7x6P5Ebd07/g=" crossorigin="anonymous"></script>
   
@@ -764,14 +761,8 @@
   <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js" integrity="sha256-lSjKY0/srUM9BE3dPm+c4fBo1dky2v27Gdjm2uoZaL0=" crossorigin="anonymous"></script>
   
   <script src="js/bypass-service-worker.js"></script>
-  <script src="js/profile-debug.js"></script>
-  <script src="js/chart-debug.js"></script>
   <script src="js/sw-update.js"></script>
   <script src="js/auth-check.js"></script>
-  <script src="js/save-api-secret.js"></script>
-  <script src="js/fix-profile-auth.js"></script>
-  <script src="js/data-debug.js"></script>
-  <script src="js/force-reload.js"></script>
   <script src="<%= locals.bundle %>/js/bundle.app.v2.js?v=<%= locals.cachebuster %>&t=<%= Date.now() %>"></script>
   <script src="https://cdn.socket.io/4.6.2/socket.io.min.js"></script>
   <script src="js/client.js"></script>
@@ -803,8 +794,6 @@
     */
 
   </script>
-
-  <script src="/static/js/chart-data-debug.js"></script>
 
 </body>
 
