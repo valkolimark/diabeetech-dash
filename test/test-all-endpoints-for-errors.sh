@@ -44,7 +44,8 @@ test_endpoint() {
     fi
     
     HTTP_CODE=$(echo "$RESPONSE" | tail -n 1)
-    BODY=$(echo "$RESPONSE" | head -n -1)
+    # Use sed instead of head -n -1 for portability
+    BODY=$(echo "$RESPONSE" | sed '$d')
     
     if [ "$HTTP_CODE" = "500" ]; then
         printf "${RED}[500 ERROR]${NC}\n"
