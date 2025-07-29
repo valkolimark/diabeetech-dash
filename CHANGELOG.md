@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Memory Optimization Deployment** (2025-07-26) - Successfully deployed memory optimizations:
+  - Added memory limits in Procfile (`--max-old-space-size=400 --optimize-for-size`)
+  - Implemented connection pool configuration (reduced from 100 to 10 connections)
+  - Created memory monitoring endpoint at `/api/v1/admin/memory`
+  - Added data cleanup scripts for entries older than 90 days
+  - Deployed as version v214
+  - Result: Memory usage reduced from 512MB+ to ~38MB, eliminating R14 errors
+
 ### Fixed
 - **Admin Dashboard User Deletion** (2025-07-26) - Fixed critical issues preventing user deletion in the admin dashboard:
   - Fixed environment context error by adding `app.set('ctx', ctx)` to multi-tenant app configuration
