@@ -15,6 +15,8 @@ import Analytics from './pages/Analytics';
 import System from './pages/System';
 import AuditLogs from './pages/AuditLogs';
 import Settings from './pages/Settings';
+import DexcomCredentials from './pages/DexcomCredentials';
+import GlucoseOverview from './pages/GlucoseOverview';
 
 // Services
 import { authService } from './services/auth';
@@ -105,6 +107,8 @@ function App() {
           <Route path="/" element={<Dashboard />} />
           <Route path="/tenants/*" element={<Tenants />} />
           <Route path="/users/*" element={<Users />} />
+          <Route path="/bridges" element={<DexcomCredentials />} />
+          <Route path="/glucose" element={<GlucoseOverview />} />
           <Route path="/analytics" element={<Analytics />} />
           <Route path="/system" element={<System />} />
           <Route path="/audit" element={<AuditLogs />} />

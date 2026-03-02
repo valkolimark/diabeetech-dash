@@ -29,6 +29,8 @@ import {
   Settings as SettingsIcon,
   Logout as LogoutIcon,
   AccountCircle,
+  Cable as BridgeIcon,
+  MonitorHeart as GlucoseIcon,
 } from '@mui/icons-material';
 import { authService } from '../../services/auth';
 
@@ -38,6 +40,8 @@ const menuItems = [
   { text: 'Dashboard', icon: <DashboardIcon />, path: '/' },
   { text: 'Tenants', icon: <TenantsIcon />, path: '/tenants' },
   { text: 'Users', icon: <UsersIcon />, path: '/users' },
+  { text: 'Dexcom Bridges', icon: <BridgeIcon />, path: '/bridges' },
+  { text: 'Glucose Overview', icon: <GlucoseIcon />, path: '/glucose' },
   { text: 'Analytics', icon: <AnalyticsIcon />, path: '/analytics' },
   { text: 'System', icon: <SystemIcon />, path: '/system' },
   { text: 'Audit Logs', icon: <AuditIcon />, path: '/audit' },

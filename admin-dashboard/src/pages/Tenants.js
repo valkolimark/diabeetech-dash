@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Routes, Route, useNavigate } from 'react-router-dom';
-import { useQuery } from 'react-query';
+import { useQuery, useMutation, useQueryClient } from 'react-query';
 import {
   Box,
   Button,
@@ -19,6 +19,10 @@ import {
   InputAdornment,
   CircularProgress,
   Alert,
+  Switch,
+  FormControlLabel,
+  Divider,
+  MenuItem,
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -28,6 +32,7 @@ import {
   Visibility as ViewIcon,
   Block as BlockIcon,
   CheckCircle as ActivateIcon,
+  ArrowBack as BackIcon,
 } from '@mui/icons-material';
 import { adminApi } from '../services/api';
 import { useSnackbar } from 'notistack';
@@ -220,7 +225,183 @@ function TenantList() {
   );
 }
 
-// Tenant detail/edit component (placeholder)
+// Create new tenant form
+function CreateTenant() {
+  const navigate = useNavigate();
+  const { enqueueSnackbar } = useSnackbar();
+  const queryClient = useQueryClient();
+
+  const [form, setForm] = useState({
+    username: '',
+    displayName: '',
+    email: '',
+    password: '',
+    units: 'mg/dl',
+    dexcomUsername: '',
+    dexcomPassword: '',
+    enableBridge: true,
+  });
+
+  const createMutation = useMutation(
+    (data) => adminApi.createFullTenant(data),
+    {
+      onSuccess: (res) => {
+        const d = res.data.data;
+        enqueueSnackbar(
+          `Tenant "${d.tenant.subdomain}" created! Bridge: ${d.bridge.running ? 'Running' : 'Not started'}`,
+          { variant: 'success' }
+        );
+        queryClient.invalidateQueries('tenants');
+        navigate('/tenants');
+      },
+      onError: (err) => {
+        enqueueSnackbar(
+          err.response?.data?.error || 'Failed to create tenant',
+          { variant: 'error' }
+        );
+      },
+    }
+  );
+
+  const handleChange = (field) => (e) => {
+    const value = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
+    setForm({ ...form, [field]: value });
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    createMutation.mutate(form);
+  };
+
+  return (
+    <Box>
+      <Box sx={{ mb: 3, display: 'flex', alignItems: 'center', gap: 2 }}>
+        <IconButton onClick={() => navigate('/tenants')}>
+          <BackIcon />
+        </IconButton>
+        <Typography variant="h5">Create New Tenant</Typography>
+      </Box>
+
+      <Paper sx={{ p: 3, maxWidth: 600 }}>
+        <form onSubmit={handleSubmit}>
+          <Typography variant="h6" gutterBottom>Account Info</Typography>
+
+          <TextField
+            label="Username / Subdomain"
+            value={form.username}
+            onChange={handleChange('username')}
+            fullWidth
+            required
+            margin="normal"
+            helperText="3-63 characters. Letters, numbers, hyphens only. This becomes the subdomain."
+            inputProps={{ pattern: '[a-zA-Z0-9-]+', minLength: 3, maxLength: 63 }}
+          />
+
+          <TextField
+            label="Display Name"
+            value={form.displayName}
+            onChange={handleChange('displayName')}
+            fullWidth
+            margin="normal"
+            helperText="Shown in the admin dashboard and glucose overview"
+          />
+
+          <TextField
+            label="Email"
+            type="email"
+            value={form.email}
+            onChange={handleChange('email')}
+            fullWidth
+            required
+            margin="normal"
+          />
+
+          <TextField
+            label="Password"
+            type="password"
+            value={form.password}
+            onChange={handleChange('password')}
+            fullWidth
+            required
+            margin="normal"
+            inputProps={{ minLength: 8 }}
+            helperText="Minimum 8 characters"
+          />
+
+          <TextField
+            label="Glucose Units"
+            select
+            value={form.units}
+            onChange={handleChange('units')}
+            fullWidth
+            margin="normal"
+          >
+            <MenuItem value="mg/dl">mg/dL</MenuItem>
+            <MenuItem value="mmol">mmol/L</MenuItem>
+          </TextField>
+
+          <Divider sx={{ my: 3 }} />
+          <Typography variant="h6" gutterBottom>Dexcom Share Integration</Typography>
+
+          <TextField
+            label="Dexcom Username"
+            value={form.dexcomUsername}
+            onChange={handleChange('dexcomUsername')}
+            fullWidth
+            margin="normal"
+            autoComplete="off"
+          />
+
+          <TextField
+            label="Dexcom Password"
+            type="password"
+            value={form.dexcomPassword}
+            onChange={handleChange('dexcomPassword')}
+            fullWidth
+            margin="normal"
+            autoComplete="new-password"
+          />
+
+          <FormControlLabel
+            control={
+              <Switch
+                checked={form.enableBridge}
+                onChange={handleChange('enableBridge')}
+              />
+            }
+            label="Auto-start Dexcom bridge after creation"
+          />
+
+          <Box sx={{ mt: 3, display: 'flex', gap: 2 }}>
+            <Button
+              type="submit"
+              variant="contained"
+              size="large"
+              disabled={createMutation.isLoading}
+            >
+              {createMutation.isLoading ? 'Creating...' : 'Create Tenant'}
+            </Button>
+            <Button
+              variant="outlined"
+              size="large"
+              onClick={() => navigate('/tenants')}
+            >
+              Cancel
+            </Button>
+          </Box>
+
+          {createMutation.isError && (
+            <Alert severity="error" sx={{ mt: 2 }}>
+              {createMutation.error?.response?.data?.error || 'Creation failed'}
+            </Alert>
+          )}
+        </form>
+      </Paper>
+    </Box>
+  );
+}
+
+// Tenant detail/view component (placeholder for future)
 function TenantDetail() {
   return (
     <Box>
@@ -234,7 +415,7 @@ function Tenants() {
   return (
     <Routes>
       <Route path="/" element={<TenantList />} />
-      <Route path="/new" element={<TenantDetail />} />
+      <Route path="/new" element={<CreateTenant />} />
       <Route path="/:id" element={<TenantDetail />} />
       <Route path="/:id/edit" element={<TenantDetail />} />
     </Routes>

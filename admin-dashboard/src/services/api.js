@@ -103,6 +103,18 @@ export const adminApi = {
   getSystemLogs: (params) => api.get('/system/logs', { params }),
   runMaintenance: (task, data) => api.post('/system/maintenance', { task, ...data }),
   
+  // Full tenant creation
+  createFullTenant: (data) => api.post('/tenants/create-full', data),
+
+  // Bridges / Dexcom
+  getBridges: () => api.get('/bridges'),
+  updateBridge: (tenantId, data) => api.put(`/bridges/${tenantId}`, data),
+  restartBridge: (tenantId) => api.post(`/bridges/${tenantId}/restart`),
+  stopBridge: (tenantId) => api.post(`/bridges/${tenantId}/stop`),
+
+  // Glucose Overview
+  getGlucoseOverview: () => api.get('/glucose/overview'),
+
   // Audit
   getAuditLogs: (params) => api.get('/audit', { params }),
   getAuditStats: (params) => api.get('/audit/stats', { params }),

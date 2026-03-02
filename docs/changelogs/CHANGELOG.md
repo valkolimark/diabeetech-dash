@@ -8,6 +8,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Admin Dashboard — Dexcom Bridge Management** (2026-03-01)
+  - New "Dexcom Bridges" page in admin dashboard sidebar
+  - View all tenants with Dexcom username, bridge enabled/disabled status, running/stopped status, and uptime
+  - Edit Dexcom credentials per tenant with dialog form
+  - Start, stop, and restart bridges per tenant from the UI
+  - Backend: `GET/PUT /api/v1/admin/bridges`, `POST /restart`, `POST /stop`
+  - Files: `lib/api/admin/bridges.js`, `admin-dashboard/src/pages/DexcomCredentials.js`
+
+- **Admin Dashboard — Glucose Overview** (2026-03-01)
+  - New "Glucose Overview" page in admin dashboard sidebar
+  - Shows all tenants with latest glucose reading, trend direction arrow, and timestamp
+  - Color-coded glucose values (green in-range, orange high/low, red urgent)
+  - Staleness indicators: Fresh (<6m), Aging (6-15m), Stale (>15m)
+  - Auto-refreshes every 30 seconds via React Query
+  - Backend: `GET /api/v1/admin/glucose/overview`
+  - Files: `lib/api/admin/glucose.js`, `admin-dashboard/src/pages/GlucoseOverview.js`
+
+- **Admin Dashboard — Full Tenant Creation** (2026-03-01)
+  - Replaced "Coming Soon" placeholder with complete tenant creation form
+  - Creates tenant, database, user account, bridge settings, and default profile in one step
+  - Fields: username/subdomain, display name, email, password, glucose units, Dexcom credentials, bridge auto-start
+  - Backend: `POST /api/v1/admin/tenants/create-full`
+  - Files: `lib/api/admin/create-tenant.js`, updated `admin-dashboard/src/pages/Tenants.js`
+
+### Fixed
+- **Dexcom Password Escaping Bug** (2026-03-01)
+  - Passwords with special characters (e.g. `!`, `$`) were stored with backslash escaping (`\!`)
+  - Added `sanitizePassword()` function to strip accidental backslash escaping
+  - Applied to all 3 password storage paths: bridge update, tenant creation, and user self-registration
+  - Files: `lib/api/admin/bridges.js`, `lib/api/admin/create-tenant.js`, `lib/api/tenants/register-enhanced.js`
+
 - **Memory Optimization Deployment** (2025-07-26) - Successfully deployed memory optimizations:
   - Added memory limits in Procfile (`--max-old-space-size=400 --optimize-for-size`)
   - Implemented connection pool configuration (reduced from 100 to 10 connections)
